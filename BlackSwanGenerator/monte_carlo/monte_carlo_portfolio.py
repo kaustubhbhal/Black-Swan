@@ -22,8 +22,9 @@ class PortfolioMonteCarlo:
         for ticker, (etf_ticker, shares) in stock_dict.items():
             self.stocks.append(StockStats(ticker, etf_ticker, history_start_date, history_end_date, shares))
         self.num_stocks = len(self.stocks)
-        self.simulations = None
+        self.simulations = np.zeros((1000, 252))
         self.portfolio_value = sum([s.start_value for s in self.stocks])
+        self.max_y = 3 * self.portfolio_value
 
     def simulate(self, num_simulations, num_days):
         """
@@ -34,9 +35,7 @@ class PortfolioMonteCarlo:
 
         # Simulate each stock and add its contribution to the portfolio
         for stock in self.stocks:
-            stock_simulations = np.zeros((num_simulations, num_days))
-            for i in range(num_simulations):
-                stock_simulations[i] = stock.simulate(num_days)
+            stock_simulations = stock.monteCarlo(num_simulations,num_days)
             portfolio_simulations += stock_simulations  # Sum stock values for portfolio aggregation
         self.simulations = portfolio_simulations
         return portfolio_simulations
@@ -52,6 +51,7 @@ class PortfolioMonteCarlo:
     def generate_monte(self):
         simulations = self.simulations
         plt.figure(figsize=(14, 7))
+        plt.ylim(0,self.max_y)
         plt.plot(simulations.T, color='blue', alpha=0.03)
         plt.title('Monte Carlo Simulations of Portfolio Value')
         plt.xlabel('Trading Days')
@@ -101,8 +101,9 @@ class PortfolioMonteCarlo:
     def generate_no_jump(self):
         for stock in self.stocks:
             stock.jumping = False
-        simulations = self.simulate(500, 252)
+        simulations = self.simulate(1000, 252)
         plt.figure(figsize=(14, 7))
+        plt.ylim(0,self.max_y)
         plt.plot(simulations.T, color='blue', alpha=0.03)
         plt.title('Monte Carlo Simulations of Portfolio Value (No Black Swan Events)')
         plt.xlabel('Trading Days')

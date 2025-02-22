@@ -48,7 +48,7 @@ class StockStats:
         self.sig_ETF = np.std(etf_hist['LogReturn']) * (252 ** 0.5)
 
         # Merge
-        merged_df = pd.merge(stock_hist[['LogReturn']], etf_hist[['LogReturn']], left_index=True, right_index=True, suffixes=('_stock', '_etf'))
+        merged_df = pd.merge(stock_hist['LogReturn'], etf_hist['LogReturn'], left_index=True, right_index=True, suffixes=('_stock', '_etf'))
         merged_df = merged_df.dropna()
 
         merged_df.columns = ['LogReturn_stock', 'LogReturn_etf']
@@ -147,4 +147,4 @@ class StockStats:
             simulations[i] = self.simulate(num_days)
         self.simulations = simulations
         self.statistics = self.getStatistics()
-        return self.statistics
+        return self.simulations
