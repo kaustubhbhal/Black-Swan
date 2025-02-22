@@ -163,23 +163,23 @@ export default function StressTestAnalysis() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Beta</span>
+                    <span className="text-sm font-medium text-muted-foreground">β</span>
                   <span className="font-bold">{data.beta.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Lambda Jump</span>
+                    <span className="text-sm font-medium text-muted-foreground">λ<sub>jump</sub></span>
                   <span className="font-bold">{data.lambda_jump.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Sig ETF</span>
+                    <span className="text-sm font-medium text-muted-foreground">σ<sub>ETF</sub></span>
                   <span className="font-bold">{data.sig_etf.toFixed(4)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Sig Idio</span>
+                    <span className="text-sm font-medium text-muted-foreground">σ<sub>idiosyncratic</sub></span>
                   <span className="font-bold">{data.sig_idio.toFixed(4)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <span className="text-sm font-medium text-muted-foreground">Sig S</span>
+                    <span className="text-sm font-medium text-muted-foreground">σ<sub>s</sub></span>
                   <span className="font-bold">{data.sig_s.toFixed(4)}</span>
                 </div>
               </div>

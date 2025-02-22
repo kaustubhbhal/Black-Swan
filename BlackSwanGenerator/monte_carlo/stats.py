@@ -123,8 +123,17 @@ class StockStats:
         skewness = stats.skew(final_values)
         kurtosis = stats.kurtosis(final_values)
         prob_loss = np.mean(final_values < self.start_value)
-        return var_95, es_95, max_drawdown, mean, std_dev, skewness, kurtosis, prob_loss
-        
+        # we want to return a dictionary of these values with var_name:valeue
+        return {
+            'var_95': var_95,
+            'es_95': es_95,
+            'max_drawdown': max_drawdown,
+            'mean': mean,
+            'std_dev': std_dev,
+            'skewness': skewness,
+            'kurtosis': kurtosis,
+            'prob_loss': prob_loss
+        }
 
     
     def monteCarlo(self, num_simulations, num_days):

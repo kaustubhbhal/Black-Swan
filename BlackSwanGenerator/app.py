@@ -290,7 +290,7 @@ def getMessage(user_industries):
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': prompt}
         ],
-        temperature = 0.3
+        temperature = 0.75
     )
     
     try:
