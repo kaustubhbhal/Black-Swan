@@ -1,9 +1,12 @@
 "use client"
 
+import type React from "react"
+
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts"
 import Image from "next/image"
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 type StockData = {
   beta: number
@@ -69,6 +72,25 @@ export default function StressTestAnalysis() {
     fetchData()
   }, [])
 
+  const DefinitionTooltip = ({
+    term,
+    definition,
+    children,
+  }: { term: string; definition: string; children: React.ReactNode }) => (
+    <TooltipProvider>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <span className="cursor-help border-dotted border-b border-gray-400">{children}</span>
+        </TooltipTrigger>
+        <TooltipContent>
+          <p>
+            <strong>{term}:</strong> {definition}
+          </p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
+  )
+
   if (loading) return <div>Loading stress test analysis...</div>
   if (error) return <div>Error: {error}</div>
   if (!data) return <div>No stress test data available</div>
@@ -99,35 +121,75 @@ export default function StressTestAnalysis() {
         </CardHeader>
         <CardContent className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Expected Shortfall (95%)</span>
+            <DefinitionTooltip
+              term="Expected Shortfall (ES)"
+              definition="The average loss in the worst x% of cases. ES at 95% is the average loss in the worst 5% of scenarios."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Expected Shortfall (95%)</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.es_95)}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Value at Risk (95%)</span>
+            <DefinitionTooltip
+              term="Value at Risk (VaR)"
+              definition="The maximum loss expected at a given confidence level. VaR at 95% is the loss that won't be exceeded in 95% of scenarios."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Value at Risk (95%)</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.var_95)}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Max Drawdown</span>
+            <DefinitionTooltip
+              term="Max Drawdown"
+              definition="The largest peak-to-trough decline in the value of a portfolio."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Max Drawdown</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.max_drawdown)}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Probability of Loss</span>
+            <DefinitionTooltip
+              term="Probability of Loss"
+              definition="The likelihood that the portfolio will experience a negative return."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Probability of Loss</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">{(portfolioStats.prob_loss * 100).toFixed(2)}%</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Mean Return</span>
+            <DefinitionTooltip
+              term="Mean Return"
+              definition="The average return of the portfolio across all simulated scenarios."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Avg Final Value</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.mean)}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Standard Deviation</span>
+            <DefinitionTooltip
+              term="Standard Deviation"
+              definition="A measure of the amount of variation or dispersion of a set of returns."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Standard Deviation</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.std_dev)}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Skewness</span>
+            <DefinitionTooltip
+              term="Skewness"
+              definition="A measure of the asymmetry of the probability distribution of returns. Negative skew indicates a higher risk of extreme negative returns."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Skewness</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">{portfolioStats.skewness.toFixed(2)}</span>
           </div>
           <div className="flex flex-col">
-            <span className="text-sm font-medium text-muted-foreground">Kurtosis</span>
+            <DefinitionTooltip
+              term="Kurtosis"
+              definition="A measure of the 'tailedness' of the probability distribution of returns. Higher kurtosis indicates more extreme outliers."
+            >
+              <span className="text-sm font-medium text-muted-foreground">Kurtosis</span>
+            </DefinitionTooltip>
             <span className="text-2xl font-bold">{portfolioStats.kurtosis.toFixed(2)}</span>
           </div>
         </CardContent>
@@ -136,7 +198,14 @@ export default function StressTestAnalysis() {
       <Card>
         <CardHeader>
           <CardTitle>Stock Beta Comparison</CardTitle>
-          <CardDescription>Beta values for each stock in your portfolio</CardDescription>
+          <CardDescription>
+            <DefinitionTooltip
+              term="Beta"
+              definition="A measure of a stock's volatility in relation to the overall market. A beta greater than 1 indicates higher volatility than the market."
+            >
+              Beta values for each stock in your portfolio
+            </DefinitionTooltip>
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="h-[300px]">
@@ -145,7 +214,7 @@ export default function StressTestAnalysis() {
                 <CartesianGrid strokeDasharray="3 3" />
                 <XAxis dataKey="ticker" />
                 <YAxis />
-                <Tooltip />
+                <RechartsTooltip />
                 <Bar dataKey="beta" fill="#8884d8" />
               </BarChart>
             </ResponsiveContainer>
