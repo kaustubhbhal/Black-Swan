@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-api_key = os.getenv("OPENAI_API_KEY")
+api_key = os.getenv("API_KEY")
 
 def analyze_portfolio(data):
     """
@@ -77,9 +77,9 @@ def analyze_stock(ticker, data):
     beta = data['beta']
     sig_S = data['sig_s']
     sig_idio = data['sig_idio']
-    sig_ETF = data['sig_ETF']
+    sig_ETF = data['sig_etf']
     lambda_jump = data['lambda_jump']
-    stock_data = data['stock_data']
+    stock_data = data['stock_stats']
     var_95 = stock_data['var_95']
     es_95 = stock_data['es_95']
     max_drawdown = stock_data['max_drawdown']
