@@ -1,3 +1,11 @@
+from openai import OpenAI
+import os
+from dotenv import load_dotenv
+
+load_dotenv()
+
+api_key = os.getenv("OPENAI_API_KEY")
+
 def analyze_portfolio(data):
     """
     Analyze the portfolio data and suggest actions based on the risk factors.
@@ -45,7 +53,24 @@ def analyze_portfolio(data):
         stock_actions = analyze_stock(stock, data)
         actions.extend(stock_actions)
 
-    return actions
+    client = OpenAI(api_key=api_key)
+
+    system_message = "You are a financial risk analysis assistant specializing in portfolio optimization and risk mitigation. Given a set of recommended actions based on statistical risk metrics, generate a concise, five-sentence summary outlining the key concerns of the portfolio and the general adjustments that should be made. Your response should be professional, structured, and focused on high-level takeaways rather than an exhaustive list of actions."
+
+    message = f"Here is a list of recommended actions based on a portfolio stress test and risk analysis--- {actions} ---Summarize the portfolio's overall risk profile and the key adjustments that should be made in five sentences. Focus on the most critical risks and the broad strategies for addressing them."
+
+    response = client.chat.completions.create(
+        model="gpt-4-turbo",
+        messages=[
+            {"role": "system", "content": system_message},
+            {"role": "user", "content": message}
+        ],
+        temperature=0.7
+    )
+
+    summary = response.choices[0].message.content
+
+    return actions, summary
 
 
 def analyze_stock(ticker, data):
