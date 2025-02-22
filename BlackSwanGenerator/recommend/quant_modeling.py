@@ -4,6 +4,8 @@ def analyze_stock(ticker, data):
     sig_idio = data['sig_idio']
     sig_ETF = data['sig_ETF']
     lambda_jump = data['lambda_jump']
+    stock_data = data['stock_data']
+    
 
 
 def shouldBuyPut(ticker, beta, jump):

@@ -167,6 +167,7 @@ def get_jack_images():
     # Assuming JackStatsClass has methods to generate images
     monte_image = JackStatsClass.generate_monte()
     returns_annualized_image = JackStatsClass.generate_returns_annualized()
+    no_jump_image = JackStatsClass.generate_no_jump()
 
     if not monte_image or not returns_annualized_image:
         return jsonify({"error": "No images generated"}), 500
@@ -180,12 +181,15 @@ def get_jack_images():
         {
             "name": "returns_annualized_image",
             "data": returns_annualized_image  # Assuming returns_annualized_image is base64 encoded or similar
+        },
+        {
+            "name": "no_jump_image",
+            "data": no_jump_image  # Assuming no_jump_image is base64 encoded or similar
         }
     ]
 
     return jsonify({"images": image_data}), 200
-    
-    
+      
 
 
 def get_dates(string_data):
