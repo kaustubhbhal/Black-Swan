@@ -24,15 +24,15 @@ def analyze_portfolio(data):
     actions = []
 
     # If VaR is greater than 10%, suggest reducing high-risk exposure.
-    if var_95 > 0.10:
+    if var_95 / portfolio_value > 0.85:
         actions.append(f"ACTION: Reduce high-risk exposure: Reason: The portfolio's 95% VaR is {var_95:.2%}, indicating potential losses exceeding 10% in worst-case scenarios.")
     
     # If Expected Shortfall is above 15%, recommend increasing hedging.
-    if es_95 > 0.15:
+    if es_95 / portfolio_value > 0.85:
         actions.append(f"ACTION: Increase hedging: Reason: The 95% Expected Shortfall is {es_95:.2%}, suggesting a risk of catastrophic losses.")
     
     # If the maximum drawdown exceeds 35%, advise rebalancing.
-    if max_drawdown > 0.35:
+    if max_drawdown / portfolio_value > 0.50:
         actions.append(f"ACTION: Rebalance portfolio: Reason: The maximum drawdown is {max_drawdown:.2%}, which is high and indicates vulnerability during market downturns.")
     
     # If skewness is highly negative, advise adding defensive assets.
@@ -69,7 +69,6 @@ def analyze_portfolio(data):
     )
 
     summary = response.choices[0].message.content
-    print(actions, summary, "HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
     return actions, summary
 
@@ -83,9 +82,9 @@ def analyze_stock(ticker, data):
     stock_data = data['stock_stats']
     var_95 = stock_data['var_95']
     es_95 = stock_data['es_95']
-    max_drawdown = stock_data['max_drawdown']
     mean = stock_data['mean']
     prob_loss = stock_data['prob_loss']
+    start_price = data['start_value']
 
     actions = []
     
@@ -96,13 +95,9 @@ def analyze_stock(ticker, data):
     # Check if the stock requires switching to ETF for diversification
     if should_switch_to_etf(sig_ETF, sig_idio):
         actions.append(f"ACTION: Switch {ticker} to ETF: Reason: The ETF signal ({sig_ETF}) is stronger than the idiosyncratic risk ({sig_idio}), suggesting better diversification in an ETF.")
-    
-    # Check if the stock position should be reduced due to max drawdown
-    if should_reduce_position(max_drawdown):
-        actions.append(f"ACTION: Reduce position in {ticker}: Reason: The stock's max drawdown is {max_drawdown:.2f}, which is considered high and poses significant risk.")
-    
+ 
     # Check if the stock requires an increase in hedging due to risk
-    if should_do_increase_hedge(var_95, es_95):
+    if should_do_increase_hedge(var_95, es_95, start_price):
         actions.append(f"ACTION: Increase hedge for {ticker}: Reason: The VaR at 95% is {var_95:.2f} and ES at 95% is {es_95:.2f}, indicating significant tail risk in the portfolio.")
     
     # Check if the stock portfolio should be diversified
@@ -123,17 +118,11 @@ def should_switch_to_etf(sig_ETF, sig_idio):
         return True
     return False
 
-def should_reduce_position(max_drawdown):
-    """
-    Suggests reducing position size if the stock's maximum drawdown is too high (e.g., 35%).
-    """
-    return max_drawdown > 0.35  # Reduce position if drawdown exceeds 35%
-
-def should_do_increase_hedge(var_95, es_95):
+def should_do_increase_hedge(var_95, es_95, start_price):
     """
     Suggests increasing hedging if Value at Risk (VaR) or Expected Shortfall (ES) is too high.
     """
-    return var_95 > 0.10 or es_95 > 0.15  # If VaR > 10% or ES > 15%
+    return var_95 / start_price > 0.35 or es_95 / start_price > 0.35  # If VaR > 10% or ES > 15%
 
 def should_do_diversify(prob_loss, mean):
     """

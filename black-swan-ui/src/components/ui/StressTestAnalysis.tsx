@@ -7,9 +7,11 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts"
 import Image from "next/image"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
-import { StressTestRecommendations } from "./StressTestRecomendations"
+// Remove the import for StressTestRecommendations
+// import { StressTestRecommendations } from "./StressTestRecommendations"
 import { Button } from "@/components/ui/button"
-import { Loader2 } from "lucide-react"
+// Add these imports
+import { AlertTriangle, Loader2, AlertCircle, TrendingDown, BarChart2, RefreshCcw } from "lucide-react"
 
 type StockData = {
   beta: number | null
@@ -41,14 +43,22 @@ type ImageData = {
   name: string
 }
 
+// Add new types for recommendations
+type Recommendation = {
+  actions: string[]
+  summary: string
+}
+
 export default function StressTestAnalysis() {
   const [data, setData] = useState<StressTestData | null>(null)
   const [images, setImages] = useState<ImageData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [showRecommendations, setShowRecommendations] = useState(false)
-  const [recommendations, setRecommendations] = useState<string[]>([])
+  // Update the component state
+  const [recommendations, setRecommendations] = useState<Recommendation | null>(null)
   const [loadingRecommendations, setLoadingRecommendations] = useState(false)
+  const [recommendationError, setRecommendationError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -98,19 +108,20 @@ export default function StressTestAnalysis() {
     </TooltipProvider>
   )
 
+  // Replace the fetchRecommendations function
   const fetchRecommendations = async () => {
     setLoadingRecommendations(true)
+    setRecommendationError(null)
     try {
-      // Replace this URL with the actual endpoint when you have it
-      const response = await fetch("/api/stress-test-recommendations")
+      const response = await fetch("http://127.0.0.1:5000/get_actions")
       if (!response.ok) {
         throw new Error("Failed to fetch recommendations")
       }
       const data = await response.json()
-      setRecommendations(data.recommendations)
+      setRecommendations(data)
     } catch (error) {
       console.error("Error fetching recommendations:", error)
-      // You might want to show an error message to the user here
+      setRecommendationError("Failed to load recommendations. Please try again.")
     } finally {
       setLoadingRecommendations(false)
     }
@@ -192,10 +203,10 @@ export default function StressTestAnalysis() {
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
-              term="Avg Final Portfolio Price"
+              term="Mean Return"
               definition="The average return of the portfolio across all simulated scenarios."
             >
-              <span className="text-sm font-medium text-muted-foreground">Mean Return</span>
+              <span className="text-sm font-medium text-muted-foreground">Avg Final Portfolio Value</span>
             </DefinitionTooltip>
             <span className="text-2xl font-bold">
               {portfolioStats.mean !== null ? `$${formatLargeNumber(portfolioStats.mean)}` : "N/A"}
@@ -383,11 +394,13 @@ export default function StressTestAnalysis() {
           </div>
         </CardContent>
       </Card>
-      <StressTestRecommendations />
+      {/* Remove the StressTestRecommendations component */}
+      {/* <StressTestRecommendations /> */}
+      {/* Replace the recommendations section at the bottom of the component */}
       <div className="mt-8">
         <Button
           onClick={() => {
-            if (!showRecommendations && recommendations.length === 0) {
+            if (!showRecommendations && !recommendations) {
               fetchRecommendations()
             }
             setShowRecommendations(!showRecommendations)
@@ -407,12 +420,56 @@ export default function StressTestAnalysis() {
                 <div className="flex justify-center items-center h-24">
                   <Loader2 className="h-8 w-8 animate-spin" />
                 </div>
-              ) : recommendations.length > 0 ? (
-                <ul className="list-disc pl-5 space-y-2">
-                  {recommendations.map((recommendation, index) => (
-                    <li key={index}>{recommendation}</li>
-                  ))}
-                </ul>
+              ) : recommendationError ? (
+                <div className="flex items-center text-red-500">
+                  <AlertTriangle className="h-5 w-5 mr-2" />
+                  <p>{recommendationError}</p>
+                </div>
+              ) : recommendations ? (
+                <div className="space-y-6">
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Summary</h3>
+                    <p>{recommendations.summary}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-lg font-semibold mb-2">Recommended Actions</h3>
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                      {recommendations.actions.map((action, index) => {
+                        const [actionText, reasonText] = action.split(": Reason: ")
+                        const actionType = actionText.split(": ")[1]
+
+                        let Icon
+                        switch (true) {
+                          case actionType.toLowerCase().includes("reduce"):
+                            Icon = TrendingDown
+                            break
+                          case actionType.toLowerCase().includes("increase"):
+                            Icon = BarChart2
+                            break
+                          case actionType.toLowerCase().includes("rebalance"):
+                            Icon = RefreshCcw
+                            break
+                          default:
+                            Icon = AlertCircle
+                        }
+
+                        return (
+                          <Card key={index}>
+                            <CardHeader>
+                              <CardTitle className="text-lg flex items-center">
+                                <Icon className="h-5 w-5 mr-2" />
+                                {actionType}
+                              </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                              <p className="text-sm text-muted-foreground">{reasonText}</p>
+                            </CardContent>
+                          </Card>
+                        )
+                      })}
+                    </div>
+                  </div>
+                </div>
               ) : (
                 <p>No dynamic recommendations available at this time.</p>
               )}

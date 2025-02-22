@@ -227,13 +227,13 @@ def generate_fake_event(string_data):
     sys_prompt = "You are an expert in risk analysis and scenario generation. Your task is to create plausible but entirely fictional future black swan events inspired by past real-world black swan events. Given the name of a real historical black swan event, generate a unique future event that shares similar unexpected consequences but occurs under different circumstances. The event should be realistic yet unpredictable, with a clear description of what happens, why it is unforeseen, and its global impact. Avoid direct repetition of historical events and focus on novel disruptions that could emerge in the future."
     
     response = client.chat.completions.create(
-        model="gpt-4-turbo",
+        model="gpt-4",
         response_format={'type': 'text'},
         messages=[
             {'role': 'system', 'content': sys_prompt},
             {'role': 'user', 'content': prompt}
         ],
-        temperature = 0.75
+        temperature = 0.6
     )
 
     return response.choices[0].message.content
