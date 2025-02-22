@@ -64,8 +64,8 @@ export default function StressTestAnalysis() {
     const fetchData = async () => {
       try {
         const [analysisResponse, imagesResponse] = await Promise.all([
-          fetch("http://127.0.0.1:5000/get_jack"),
-          fetch("http://127.0.0.1:5000/get_jack_images"),
+          fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/get_jack`),
+          fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/get_jack_images`),
         ])
 
         if (!analysisResponse.ok || !imagesResponse.ok) {
@@ -113,7 +113,7 @@ export default function StressTestAnalysis() {
     setLoadingRecommendations(true)
     setRecommendationError(null)
     try {
-      const response = await fetch("http://127.0.0.1:5000/get_actions")
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/get_actions`)
       if (!response.ok) {
         throw new Error("Failed to fetch recommendations")
       }
@@ -206,7 +206,7 @@ export default function StressTestAnalysis() {
               term="Mean Return"
               definition="The average return of the portfolio across all simulated scenarios."
             >
-              <span className="text-sm font-medium text-muted-foreground">Avg Final Portfolio Value</span>
+              <span className="text-sm font-medium text-muted-foreground">Mean Return</span>
             </DefinitionTooltip>
             <span className="text-2xl font-bold">
               {portfolioStats.mean !== null ? `$${formatLargeNumber(portfolioStats.mean)}` : "N/A"}
