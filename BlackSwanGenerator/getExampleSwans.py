@@ -72,7 +72,7 @@ def getMessage(user_industries):
         ]
     }
     """
-    system_prompt = "You are a financial crisis expert. Output ONLY VALID JSON. **Ensure** you include ***ONE OF EACH*** rarity"
+    system_prompt = "You are a financial crisis expert. Output ONLY VALID JSON. **Ensure** you include ***ONE OF EACH*** rarity and that the events are **relevant** to the industries provided."
 
     client = OpenAI(api_key=api_key)
 
@@ -86,7 +86,9 @@ def getMessage(user_industries):
         temperature = 0.3
     )
     try:
-        return response.choices[0].message.content
+        ugly = response.choices[0].message.content
+        pretty = re.sub(r'(\w+):', r'"\1":', ugly)
+        return json.loads(pretty)
     except (json.JSONDecodeError, AttributeError):
         raise ValueError("Invalid JSON response received from OpenAI")
 
