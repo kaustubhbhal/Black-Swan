@@ -29,7 +29,7 @@ portfolio_data = {}
 # In-memory storage for the fake event (not persistent)
 global fake_event_string
 global JackStatsClass
-global statistics
+global actions, words
 
 @app.route('/add_portfolio', methods=['POST'])
 def add_portfolio():
@@ -147,7 +147,7 @@ def get_jack():
             "start_value": stock.start_value,
             "stock_stats": stock.statistics
         }
-    statistics = answer_dict.copy()
+    actions, words = analyze_portfolio(answer_dict)
     return answer_dict, 200
     
 @app.route('/get_fake_event', methods=['GET'])
@@ -194,12 +194,6 @@ def get_jack_images():
       
 @app.route('/get_actions', methods=['GET'])
 def get_actions():
-    try:
-        portfolio_id = portfolio_data["id"]
-    except KeyError:
-        return jsonify({"error": "No portfolio ID found"}), 404
-    
-    actions, words = analyze_portfolio(statistics)
     return jsonify({"actions": actions, "summary": words}), 200
 
 
