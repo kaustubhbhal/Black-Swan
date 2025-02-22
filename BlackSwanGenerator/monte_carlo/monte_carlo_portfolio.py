@@ -144,5 +144,6 @@ class PortfolioMonteCarlo:
             'std_dev': std_dev,
             'skewness': skewness,
             'kurtosis': kurtosis,
-            'prob_loss': prob_loss
+            'prob_loss': prob_loss,
+            'inital_portfolio_value': self.portfolio_value
         }
