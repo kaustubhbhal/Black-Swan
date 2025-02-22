@@ -111,28 +111,48 @@ def get_jack():
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch string"}), 500
 
-    string_data = str(response.json())
+    response_data = response.json()
+    if 'selected-card' not in response_data:
+        return jsonify({"error": "No string found in response"}), 400
+
+    string_data = response_data['selected-card']
     start, end = get_dates(string_data)
 
     fake_event = generate_fake_event(string_data)
+    global fake_event_string
     fake_event_string = str(fake_event)
 
     try:
         portfolio_id = portfolio_data["id"]
-    except:
+    except KeyError:
         return jsonify({"error": "No portfolio ID found"}), 404
     
-    portfolio_dict = read_mongo_database(MONGO_URI, DB_NAME, COLLECTION_NAME, portfolio_id)
+    portfolio_dict = read_mongo_database(MONGO_URI, DB_NAME, COLLECTION_NAME, portfolio_id, start)
 
+    global JackStatsClass
     JackStatsClass = PortfolioMonteCarlo(portfolio_dict, start, end)
     
     answer_dict = {}
     answer_dict['portfolio_stats'] = JackStatsClass.monteCarlo(1000, 252)
 
     for stock in JackStatsClass.stocks:
-        answer_dict[stock.ticker] = {"beta": stock.beta, "sig_s": stock.sig_S, "sig_etf": stock.sig_ETF, "sig_idio": stock.sig_idio, "lambda_jump": stock.lambda_jump}
+        answer_dict[stock.ticker] = {
+            "beta": stock.beta, 
+            "sig_s": stock.sig_S, 
+            "sig_etf": stock.sig_ETF, 
+            "sig_idio": stock.sig_idio, 
+            "lambda_jump": stock.lambda_jump
+        }
 
     return jsonify(answer_dict), 200
+    
+@app.route('/get_fake_event', methods=['GET'])
+def get_fake_event():
+    """Retrieve the generated fake event string."""
+    if fake_event_string is None:
+        return jsonify({"error": "No fake event found"}), 404
+
+    return jsonify({"fake_event": fake_event_string}), 200
 
 
 @app.route('/get_jack_images', methods=['GET'])

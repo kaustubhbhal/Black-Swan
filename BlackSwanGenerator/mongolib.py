@@ -4,13 +4,14 @@ from dotenv import load_dotenv
 from bson import ObjectId
 from collections import defaultdict
 from openai import OpenAI
+import yfinance as yf
 
 load_dotenv()
 
 api_key = os.getenv("API_KEY")
 
 ## I need to write a function that reads in  the mongodb database and returns a dictionary including the following keys: 'stocks' and 'shares'
-def read_mongo_database(mongo_uri, db_name, collection_name, user_id_str):
+def read_mongo_database(mongo_uri, db_name, collection_name, user_id_str, start):
     client = MongoClient(mongo_uri)
     db = client[db_name]
     collection = db[collection_name]
@@ -22,30 +23,36 @@ def read_mongo_database(mongo_uri, db_name, collection_name, user_id_str):
         for holding in user['holdings']:
             ticker = holding['ticker']
             shares = holding['shares']
-            etf = getETF(ticker)
+            etf = getETF(ticker, start)
             ip_dict[ticker] = (etf, shares)
         return ip_dict
     else:
         return None
 
 
-def getETF(ticker):
+def getETF(ticker, start):
     client = OpenAI(api_key=api_key)
 
     prompt = f"Given the stock ticker {ticker}, return only the most related **ETF's** ticker. Do not include any explanations or additional text—**only output the ETF ticker**."
 
-    sys_promt = "You are a financial data expert specializing in ETFs and stock relationships. Your task is to identify the most related ETF to a given stock ticker based on sector, correlation, or holdings overlap. You must strictly return only the ETF's ticker symbol without any explanations, descriptions, or extra text."
+    sys_prompt = "You are a financial data expert specializing in ETFs and stock relationships. Your task is to identify the most related ETF to a given stock ticker based on sector, correlation, or holdings overlap. You must strictly return only the ETF's ticker symbol without any explanations, descriptions, or extra text."
 
     response = client.chat.completions.create(
         model="gpt-4-turbo",
         messages=[
-            {"role": "system", "content": sys_promt},
+            {"role": "system", "content": sys_prompt},
             {"role": "user", "content": prompt}
         ],
-        temperature=0.1
+        temperature=0.0
     )
+    suggested_etf = response.choices[0].message.content
 
-    return response.choices[0].message.content
+    etf_data = yf.Ticker(suggested_etf)
+    inception_date = etf_data.info.get("fundInceptionDate")
 
+    if inception_date and inception_date < start:
+        return suggested_etf
+    else:
+        return "SPY"
 
 
