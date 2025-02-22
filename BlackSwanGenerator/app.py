@@ -117,8 +117,6 @@ def get_jack():
 
     string_data = response_data['selected-card']
     start, end = get_dates(string_data)
-    print("START", start)
-    print("END", end)
 
     fake_event = generate_fake_event(string_data)
     global fake_event_string
@@ -130,7 +128,6 @@ def get_jack():
         return jsonify({"error": "No portfolio ID found"}), 404
     
     portfolio_dict = read_mongo_database(MONGO_URI, DB_NAME, COLLECTION_NAME, portfolio_id, start)
-    print("JACKJACKJACKJACK", portfolio_dict)
 
     global JackStatsClass
     JackStatsClass = PortfolioMonteCarlo(portfolio_dict, start, end)
@@ -144,7 +141,9 @@ def get_jack():
             "sig_s": stock.sig_S, 
             "sig_etf": stock.sig_ETF, 
             "sig_idio": stock.sig_idio, 
-            "lambda_jump": stock.lambda_jump
+            "lambda_jump": stock.lambda_jump,
+            "start_value": stock.start_value,
+            "stock_stats": stock.getStatistics()
         }
 
     return answer_dict, 200

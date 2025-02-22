@@ -61,7 +61,7 @@ class StockStats:
         self.sig_idio = np.sqrt(self.sig_S ** 2 - self.beta ** 2 * self.sig_ETF ** 2)
 
     def estimate_jump_params(self):
-        jump_thresholds = stats.norm.ppf(0.005)  # 1% quantile for a normal distribution
+        jump_thresholds = stats.norm.ppf(0.01)  # 1% quantile for a normal distribution
         
         etf_hist = yf.download(self.ETF, start=self.start_date, end=self.end_date)
         etf_hist['LogReturn'] = np.log(etf_hist['Close'] / etf_hist["Close"].shift(1)).dropna()
@@ -135,37 +135,3 @@ class StockStats:
                 self.simulations[i] = self.simulate(num_days)
             simulations[i] = self.simulate(num_days)
         return self.getStatistics(simulations)
-    
-
-# # Example usage
-# ticker = 'AAPL'
-# ETF_ticker = 'XLK'
-# shares = 100
-# # Start date will be the dot com bubble burst
-# history_start_date = '2000-03-10'
-# history_end_date = '2002-03-10'
-# stock_stats = StockStats(ticker, ETF_ticker, history_start_date, history_end_date, shares)
-# var_95, es_95, max_drawdown, distribution_percentiles, mean, std_dev, skewness, kurtosis, prob_loss = stock_stats.monteCarlo(1000, 252)
-# print(f"95% Value at Risk: {var_95}")
-# print(f"95% Expected Shortfall: {es_95}")
-# print(f"Maximum Drawdown: {max_drawdown}")
-# print(f"Distribution Percentiles: {distribution_percentiles}")
-# print(f"Mean: {mean}")
-# print(f"Standard Deviation: {std_dev}")
-# print(f"Skewness: {skewness}")
-# print(f"Kurtosis: {kurtosis}")
-# print(f"Probability of Losses Exceeding Start Value: {prob_loss}")
-
-# # WE also want to graph this data
-# num = 100
-# days = 252
-# simulations = np.zeros((num, days))
-# for i in range(num):
-#     simulations[i] = stock_stats.simulate(days)
-# plt.ion()  
-# plt.figure(figsize=(12, 6))
-# plt.plot(simulations.T, color='blue', alpha=0.03)
-# plt.title(f'Monte Carlo Simulations of {ticker} Price')
-# plt.xlabel('Days')
-# plt.ylabel(f'{ticker} Price')
-# plt.savefig("monte_carlo_plot.png")
