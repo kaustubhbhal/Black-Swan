@@ -7,7 +7,8 @@ from openai import OpenAI
 import json, re, os
 from dotenv import load_dotenv
 import requests
-import anthropic
+from mongolib import read_mongo_database
+from monte_carlo.monte_carlo_portfolio import PortfolioMonteCarlo
 
 load_dotenv()
 api_key = os.getenv("API_KEY")
@@ -24,6 +25,9 @@ CORS(app)
 
 # In-memory storage for portfolio ID (not persistent)
 portfolio_data = {}
+# In-memory storage for the fake event (not persistent)
+global fake_event_string
+global JackStatsClass
 
 @app.route('/add_portfolio', methods=['POST'])
 def add_portfolio():
@@ -74,24 +78,6 @@ def post_swans():
 
     return jsonify(message), 200  # Change status code to 200 for GET requests
 
-@app.route('/get_clean_swans', methods=['GET'])
-def get_clean_swans():
-    # Call the /post_swans route to get the raw response
-    response = requests.get("http://127.0.0.1:5000/post_swans")
-    
-    if response.status_code != 200:
-        return jsonify({"error": "Failed to fetch portfolio"}), 500
-
-    # Get the raw data from the response
-    raw_data = response.json()
-
-    if 'error' in raw_data:
-        return jsonify({"error": raw_data['error']}), 400
-
-    # Clean up the raw string by sending it to Claude for processing
-    cleaned_data = clean_up_with_claude(raw_data['message'])
-
-    return jsonify(cleaned_data), 200
 
 @app.route('/post_string', methods=['POST'])
 def post_string():
@@ -118,6 +104,108 @@ def get_string():
 
     return jsonify({"selected-card": stored_string}), 200
 
+
+@app.route('/get_jack', methods=['GET'])
+def get_jack():
+    response = requests.get("http://127.0.0.1:5000/get_string")
+    if response.status_code != 200:
+        return jsonify({"error": "Failed to fetch string"}), 500
+
+    string_data = str(response.json())
+    start, end = get_dates(string_data)
+
+    fake_event = generate_fake_event(string_data)
+    fake_event_string = str(fake_event)
+
+    try:
+        portfolio_id = portfolio_data["id"]
+    except:
+        return jsonify({"error": "No portfolio ID found"}), 404
+    
+    portfolio_dict = read_mongo_database(MONGO_URI, DB_NAME, COLLECTION_NAME, portfolio_id)
+
+    JackStatsClass = PortfolioMonteCarlo(portfolio_dict, start, end)
+    
+    answer_dict = {}
+    answer_dict['portfolio_stats'] = JackStatsClass.monteCarlo(1000, 252)
+
+    for stock in JackStatsClass.stocks:
+        answer_dict[stock.ticker] = {"beta": stock.beta, "sig_s": stock.sig_S, "sig_etf": stock.sig_ETF, "sig_idio": stock.sig_idio, "lambda_jump": stock.lambda_jump}
+
+    return jsonify(answer_dict), 200
+
+
+@app.route('/get_jack_images', methods=['GET'])
+def get_jack_images():
+    try:
+        portfolio_id = portfolio_data["id"]
+    except KeyError:
+        return jsonify({"error": "No portfolio ID found"}), 404
+
+    # Assuming JackStatsClass has methods to generate images
+    monte_image = JackStatsClass.generate_monte()
+    returns_annualized_image = JackStatsClass.generate_returns_annualized()
+
+    if not monte_image or not returns_annualized_image:
+        return jsonify({"error": "No images generated"}), 500
+
+    # Convert images to a format suitable for JSON response
+    image_data = [
+        {
+            "name": "monte_image",
+            "data": monte_image  # Assuming monte_image is base64 encoded or similar
+        },
+        {
+            "name": "returns_annualized_image",
+            "data": returns_annualized_image  # Assuming returns_annualized_image is base64 encoded or similar
+        }
+    ]
+
+    return jsonify({"images": image_data}), 200
+    
+    
+
+
+def get_dates(string_data):
+    client = OpenAI(api_key=api_key)
+
+    sys_prompt = "You are an expert in historical financial analysis and risk modeling. Given the name of a past black swan event, determine the most relevant start date when its effects began to impact financial markets or economic data. The end date should always be exactly two years after the start date. Format your response strictly as YYYY-MM-DD,YYYY-MM-DD without any explanations or additional text."
+
+    prompt = f"Given the past black swan event '{string_data},' provide a date range in the format YYYY-MM-DD,YYYY-MM-DD. The start date should reflect when the event first impacted financial markets, and the end date should be exactly two years later. Output only the date range with no additional text."
+    
+    response = client.chat.completions.create(
+        model="gpt-4-turbo",
+        response_format={'type': 'text'},
+        messages=[
+            {'role': 'system', 'content': sys_prompt},
+            {'role': 'user', 'content': prompt}
+        ],
+        temperature = 0.1
+    )
+
+    dates = response.choices[0].message.content.split(',')
+    return dates[0], dates[1]
+
+
+def generate_fake_event(string_data):
+    client = OpenAI(api_key=api_key)
+
+    prompt = "Given the name of a real black swan event from the past, generate a fictional black swan event that could plausibly occur in the future. The fictional event should be inspired by the themes or consequences of the original but should be unique and not simply a repeat. Provide a 3-4 sentence description of this new event, detailing what happens, its unexpected nature, and its broad impact. Here is the past black swan event: " + string_data
+    sys_prompt = "You are an expert in risk analysis and scenario generation. Your task is to create plausible but entirely fictional future black swan events inspired by past real-world black swan events. Given the name of a real historical black swan event, generate a unique future event that shares similar unexpected consequences but occurs under different circumstances. The event should be realistic yet unpredictable, with a clear description of what happens, why it is unforeseen, and its global impact. Avoid direct repetition of historical events and focus on novel disruptions that could emerge in the future."
+    
+    response = client.chat.completions.create(
+        model="gpt-4-turbo",
+        response_format={'type': 'text'},
+        messages=[
+            {'role': 'system', 'content': sys_prompt},
+            {'role': 'user', 'content': prompt}
+        ],
+        temperature = 0.3
+    )
+
+    return response.choices[0].message.content
+        
+    
 
 def getWeights(mongo_uri, db_name, collection_name, user_id_str):
     client = MongoClient(mongo_uri)
@@ -165,12 +253,12 @@ def getMessage(user_industries):
 
     """
     
-    system_prompt = "You are a financial crisis expert. Ensure that the response follows the format described above, with each event clearly separated."
+    system_prompt = "You are a financial crisis expert. Ensure that the response follows the format described above, with each event clearly separated. Make sure you have **one event of each rarity** category (very uncommon, uncommon, common)."
 
     client = OpenAI(api_key=api_key)
 
     response = client.chat.completions.create(
-        model="gpt-3.5-turbo-0125",
+        model="gpt-4-turbo",
         response_format={'type': 'json_object'},
         messages=[
             {'role': 'system', 'content': system_prompt},
@@ -187,7 +275,6 @@ def getMessage(user_industries):
     except (json.JSONDecodeError, AttributeError):
         raise ValueError("Invalid JSON response received from OpenAI")
 
-
-
+    
 if __name__ == '__main__':
     app.run(debug=True)

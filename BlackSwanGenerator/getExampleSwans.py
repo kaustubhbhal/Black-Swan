@@ -84,7 +84,7 @@ def getMessage(user_industries):
             {'role': 'user', 'content': prompt}
         ],
         temperature = 0.3
-    )
+    )   
     try:
         ugly = response.choices[0].message.content
         pretty = re.sub(r'(\w+):', r'"\1":', ugly)

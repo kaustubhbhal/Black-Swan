@@ -26,6 +26,7 @@ class StockStats:
         self.estimate_jump_params()
         # Store 20 simulations
         self.simulations = np.zeros((20, 252))
+        self.jumping = jumping
 
     def calculate_statistics(self):
         # Assign the start value of the stock
