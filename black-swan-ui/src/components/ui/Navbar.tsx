@@ -9,6 +9,13 @@ interface NavbarProps {
 }
 
 export default function Navbar({ session, status }: NavbarProps) {
+  const navLinks = [
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/portfolios", label: "Portfolios" },
+    { href: "/onboarding", label: "Onboarding" },
+    { href: "/settings", label: "Settings" },
+  ]
+
   return (
     <nav className="bg-gray-800 text-white shadow-lg">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,28 +27,30 @@ export default function Navbar({ session, status }: NavbarProps) {
             <>
               <div className="hidden md:block">
                 <div className="ml-10 flex items-baseline space-x-4">
-                  <Link
-                    href="/dashboard"
-                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition duration-150 ease-in-out"
-                  >
-                    Dashboard
-                  </Link>
-                  <Link
-                    href="/onboarding"
-                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition duration-150 ease-in-out"
-                  >
-                    Onboarding
-                  </Link>
-                  <Link
-                    href="/settings"
-                    className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition duration-150 ease-in-out"
-                  >
-                    Settings
-                  </Link>
+                  {navLinks.map((link) => (
+                    <Link
+                      key={link.href}
+                      href={link.href}
+                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition duration-150 ease-in-out"
+                    >
+                      {link.label}
+                    </Link>
+                  ))}
                   <SignOutButton />
                 </div>
               </div>
-              <MobileMenu />
+              <MobileMenu>
+                {navLinks.map((link) => (
+                  <Link
+                    key={link.href}
+                    href={link.href}
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700"
+                  >
+                    {link.label}
+                  </Link>
+                ))}
+                <SignOutButton />
+              </MobileMenu>
             </>
           )}
         </div>
@@ -49,4 +58,3 @@ export default function Navbar({ session, status }: NavbarProps) {
     </nav>
   )
 }
-
