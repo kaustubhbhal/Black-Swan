@@ -72,9 +72,9 @@ class StockStats:
         jump_events = etf_hist[etf_hist['LogReturn'] < jump_cutoff]['LogReturn']
 
         etf_hist.index = pd.to_datetime(etf_hist.index)
-        period_years = (etf_hist.index[-1] - etf_hist.index[0]).days / 365.25
+        period_years = len(etf_hist) / 252
 
-        self.lambda_jump = len(jump_events) / period_years
+        self.lambda_jump = len(jump_events) / period_years * self.dt
         self.mu_J = jump_events.mean()
         self.sigma_J = jump_events.std()
 
@@ -90,7 +90,7 @@ class StockStats:
     def calculateJump(self):
         if not self.jumping:
             return 0
-        N_T = np.random.poisson(self.lambda_jump * self.dt)
+        N_T = np.random.poisson(self.lambda_jump)
         if N_T > 0:
             jump_magnitudes = np.random.normal(self.mu_J, self.sigma_J, N_T)
             J_T = np.sum(jump_magnitudes)
@@ -118,13 +118,12 @@ class StockStats:
         var_95 = np.percentile(final_values, 5)
         es_95 = np.mean(final_values[final_values < var_95])
         max_drawdown = np.max(np.maximum.accumulate(final_values) - final_values)
-        distribution_percentiles = np.percentile(final_values, [1, 5, 25, 50, 75, 95, 99])
         mean = np.mean(final_values)
         std_dev = np.std(final_values)
         skewness = stats.skew(final_values)
         kurtosis = stats.kurtosis(final_values)
         prob_loss = np.mean(final_values < self.start_value)
-        return var_95, es_95, max_drawdown, distribution_percentiles, mean, std_dev, skewness, kurtosis, prob_loss
+        return var_95, es_95, max_drawdown, mean, std_dev, skewness, kurtosis, prob_loss
         
 
     
