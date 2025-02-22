@@ -3,6 +3,7 @@ import "./globals.css"
 import { Inter } from "next/font/google"
 import NavbarWrapper from "@/components/ui/NavbarWrapper"
 import AuthProvider from "./AuthProvider"
+import { ThemeProvider } from "./contexts/ThemeContext"
 
 const inter = Inter({ subsets: ["latin"] })
 
@@ -17,15 +18,17 @@ export default function RootLayout({
   children: React.ReactNode
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} bg-background text-foreground`}>
         <AuthProvider>
-          <div className="flex flex-col min-h-screen">
-            <NavbarWrapper />
-            <main className="flex-grow bg-gray-100">
-              <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">{children}</div>
-            </main>
-          </div>
+          <ThemeProvider>
+            <div className="flex flex-col min-h-screen">
+              <NavbarWrapper />
+              <main className="flex-grow">
+                <div className="container mx-auto py-8 px-4 sm:px-6 lg:px-8">{children}</div>
+              </main>
+            </div>
+          </ThemeProvider>
         </AuthProvider>
       </body>
     </html>
