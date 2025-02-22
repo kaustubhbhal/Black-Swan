@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip as RechartsTooltip, ResponsiveContainer } from "recharts"
 import Image from "next/image"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
+import { StressTestRecommendations } from "./StressTestRecomendations"
+import { Button } from "@/components/ui/button"
+import { Loader2 } from "lucide-react"
 
 type StockData = {
   beta: number | null
@@ -43,6 +46,9 @@ export default function StressTestAnalysis() {
   const [images, setImages] = useState<ImageData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [showRecommendations, setShowRecommendations] = useState(false)
+  const [recommendations, setRecommendations] = useState<string[]>([])
+  const [loadingRecommendations, setLoadingRecommendations] = useState(false)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -91,6 +97,24 @@ export default function StressTestAnalysis() {
       </Tooltip>
     </TooltipProvider>
   )
+
+  const fetchRecommendations = async () => {
+    setLoadingRecommendations(true)
+    try {
+      // Replace this URL with the actual endpoint when you have it
+      const response = await fetch("/api/stress-test-recommendations")
+      if (!response.ok) {
+        throw new Error("Failed to fetch recommendations")
+      }
+      const data = await response.json()
+      setRecommendations(data.recommendations)
+    } catch (error) {
+      console.error("Error fetching recommendations:", error)
+      // You might want to show an error message to the user here
+    } finally {
+      setLoadingRecommendations(false)
+    }
+  }
 
   if (loading) return <div>Loading stress test analysis...</div>
   if (error) return <div>Error: {error}</div>
@@ -168,7 +192,7 @@ export default function StressTestAnalysis() {
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
-              term="Mean Return"
+              term="Avg Final Portfolio Price"
               definition="The average return of the portfolio across all simulated scenarios."
             >
               <span className="text-sm font-medium text-muted-foreground">Mean Return</span>
@@ -308,7 +332,7 @@ export default function StressTestAnalysis() {
         <CardContent className="space-y-12">
           <div className="grid md:grid-cols-2 gap-8">
             <div className="space-y-4">
-              <h3 className="text-xl font-semibold text-center">Portfolio Value With Jump Risk</h3>
+              <h3 className="text-xl font-semibold text-center">Monte Carlo Simulation of Portfolio Value</h3>
               <div className="relative w-full aspect-[16/9]">
                 <Image
                   src={base64ToDataUrl(images[0].data.image) || "/placeholder.svg"}
@@ -359,6 +383,43 @@ export default function StressTestAnalysis() {
           </div>
         </CardContent>
       </Card>
+      <StressTestRecommendations />
+      <div className="mt-8">
+        <Button
+          onClick={() => {
+            if (!showRecommendations && recommendations.length === 0) {
+              fetchRecommendations()
+            }
+            setShowRecommendations(!showRecommendations)
+          }}
+        >
+          {showRecommendations ? "Hide" : "Show"} Dynamic Recommendations
+        </Button>
+
+        {showRecommendations && (
+          <Card className="mt-4">
+            <CardHeader>
+              <CardTitle>Dynamic Recommendations</CardTitle>
+              <CardDescription>Based on your stress test results and current market conditions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingRecommendations ? (
+                <div className="flex justify-center items-center h-24">
+                  <Loader2 className="h-8 w-8 animate-spin" />
+                </div>
+              ) : recommendations.length > 0 ? (
+                <ul className="list-disc pl-5 space-y-2">
+                  {recommendations.map((recommendation, index) => (
+                    <li key={index}>{recommendation}</li>
+                  ))}
+                </ul>
+              ) : (
+                <p>No dynamic recommendations available at this time.</p>
+              )}
+            </CardContent>
+          </Card>
+        )}
+      </div>
     </div>
   )
 }
