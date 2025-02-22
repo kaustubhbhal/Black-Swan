@@ -3,25 +3,29 @@ from collections import defaultdict
 from pymongo import MongoClient
 from bson import ObjectId
 from openai import OpenAI
-import json, re
+import json, re, os
+from dotenv import load_dotenv
+
+load_dotenv()
+api_key = os.getenv("API_KEY")
 
 # MongoDB connection details
-MONGO_URI = "mongodb+srv://ivankashao:hacklytics@cluster0.t5epj.mongodb.net/?retryWrites=true&w=majority"
-DB_NAME = "black-swan"
-COLLECTION_NAME = "portfolios"
-USER_ID = "67b971c17225d7ce11fac818"  
+MONGO_URI = os.getenv("MONGO_URI")
+DB_NAME = os.getenv("DB_NAME")
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+USER_ID = os.getenv("USER_ID")
 
-app = Flask
+app = Flask(__name__)
 
-#@app.route('/post_swans', methods=['POST'])
+@app.route('/post_swans', methods=['POST'])
 def post_swans():
     if request.method == 'POST':
         data = request.get_data()
         user_id = data['user_id']
-        #industry_weights = getWeights(,,,user_id)
+        industry_weights = getWeights(MONGO_URI,DB_NAME,COLLECTION_NAME,user_id)
         
-        #message = getMessage(industry_weights)
-        return #jsonify(message), 201
+        message = getMessage(industry_weights)
+        return jsonify(message), 201
 
 
 def getWeights(mongo_uri, db_name, collection_name, user_id_str):
@@ -35,8 +39,8 @@ def getWeights(mongo_uri, db_name, collection_name, user_id_str):
         ip_dict = defaultdict(float)
         for holding in user['holdings']:
             industry = holding['industry']
-            percent = holding['percentage']
-            ip_dict[industry] += percent
+            percent = holding['percentOfPortfolio']
+            ip_dict[industry] += float(percent)
 
         return ip_dict
     else:
@@ -44,21 +48,15 @@ def getWeights(mongo_uri, db_name, collection_name, user_id_str):
     
 
 def getMessage(user_industries):
-    prompt = f"""
-    Generate 3 historical categorized Black Swan events that occurred between 1975 and the present, which would have impacted the following portfolio of (industry, weight) pairs:
-
-    {user_industries}.
-
+    prompt = "Generate 3 historical categorized Black Swan events that occurred between 1975 and the present, which would have impacted the following portfolio of (industry, weight) pairs:" + str(user_industries) + """
     ### Categorization of Events by Rarity:
     1. **Very Uncommon**: Extremely rare (once in 25+ years), highly unpredictable, such as major financial collapses or unprecedented geopolitical conflicts.
     2. **Uncommon**: Rare (once in 15-25 years), but with historical precedent, such as major recessions or global financial crises.
     3. **Common**: Recurring (every 1-15 years), systemic risks with predictable cycles, such as interest rate hikes, tariffs, or regional market shocks.
 
     ### For Each Event, Provide:
-    - **Name & Start Date** (YYYY-MM)
+    - **Name & Start Date** (YYYY-MM-DD)
     - **Description** (What happened, key triggers, and scale of disruption)
-    - **Industries Affected** (List of industries in the portfolio impacted and how)
-    - **Market Impact** (Stock prices, supply chains, demand shocks, regulatory effects, etc.)
     - **Rarity** (very_uncommon, uncommon, common)
 
     Format your response as a JSON object:
@@ -67,24 +65,20 @@ def getMessage(user_industries):
             {
                 "name": "Event Name",
                 "start_date": "YYYY-MM",
-                "description": "Brief explanation of what happened.",
-                "industries_affected": {
-                    "industry_name": "Positive/Negative impact description"
-                },
-                "market_impact": "How this affected financial markets and portfolios.",
+                "description": "Brief explanation of what happened and market impact",
                 "rarity": "very_uncommon/uncommon/common"
             },
             ...
         ]
     }
     """
-    system_prompt = "You are a financial crisis expert. Output ONLY VALID JSON. Never use markdown, include no additional commentary other than the JSON Schema provided"
+    system_prompt = "You are a financial crisis expert. Output ONLY VALID JSON. **Ensure** you include ***ONE OF EACH*** rarity"
 
-    client = OpenAI()
+    client = OpenAI(api_key=api_key)
 
     response = client.chat.completions.create(
         model="gpt-3.5-turbo-0125",
-        response_format={'type': 'json'},
+        response_format={'type': 'json_object'},
         messages=[
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': prompt}
@@ -95,3 +89,9 @@ def getMessage(user_industries):
         return response.choices[0].message.content
     except (json.JSONDecodeError, AttributeError):
         raise ValueError("Invalid JSON response received from OpenAI")
+
+
+weights = getWeights(MONGO_URI, DB_NAME, COLLECTION_NAME, USER_ID)
+message = getMessage(weights)
+
+print(message)
