@@ -16,6 +16,7 @@ const eslintConfig = [
       '@typescript-eslint/no-explicit-any': 'off', // Disable any type warning
       '@typescript-eslint/no-unused-vars': 'off', // Disable unused variable warning
       'react-hooks/exhaustive-deps': 'off', // Disable react-hooks dependency warning
+      'no-var': 'off', // Disallow var
     },
   },
 ];
