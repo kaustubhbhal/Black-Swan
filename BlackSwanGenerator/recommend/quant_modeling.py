@@ -1,7 +1,51 @@
-def analyze_portfolio(portfolio_data):
+def analyze_portfolio(data):
     """
     Analyze the portfolio data and suggest actions based on the risk factors.
     """
+    portfolio_data = data['portfolio_stats']
+    var_95      = portfolio_data['var_95']
+    es_95       = portfolio_data['es_95']
+    max_drawdown= portfolio_data['max_drawdown']
+    mean        = portfolio_data['mean']
+    std_dev     = portfolio_data['std_dev']
+    skewness    = portfolio_data['skewness']
+    kurtosis    = portfolio_data['kurtosis']
+    prob_loss   = portfolio_data['prob_loss']
+    portfolio_value = portfolio_data.get('inital_portfolio_value', None)
+
+    actions = []
+
+    # If VaR is greater than 10%, suggest reducing high-risk exposure.
+    if var_95 > 0.10:
+        actions.append(f"ACTION: Reduce high-risk exposure: Reason: The portfolio's 95% VaR is {var_95:.2%}, indicating potential losses exceeding 10% in worst-case scenarios.")
+    
+    # If Expected Shortfall is above 15%, recommend increasing hedging.
+    if es_95 > 0.15:
+        actions.append(f"ACTION: Increase hedging: Reason: The 95% Expected Shortfall is {es_95:.2%}, suggesting a risk of catastrophic losses.")
+    
+    # If the maximum drawdown exceeds 35%, advise rebalancing.
+    if max_drawdown > 0.35:
+        actions.append(f"ACTION: Rebalance portfolio: Reason: The maximum drawdown is {max_drawdown:.2%}, which is high and indicates vulnerability during market downturns.")
+    
+    # If skewness is highly negative, advise adding defensive assets.
+    if skewness < -1.0:
+        actions.append(f"ACTION: Add defensive assets: Reason: The portfolio's skewness is {skewness:.2f}, indicating a higher likelihood of extreme negative returns.")
+    
+    # If kurtosis is high (e.g., above 5), recommend further diversification.
+    if kurtosis > 5:
+        actions.append(f"ACTION: Diversify further: Reason: A kurtosis of {kurtosis:.2f} signals heavy tails and extreme volatility in the returns distribution.")
+    
+    # If probability of loss is above 30%, advise increasing diversification.
+    if prob_loss > 0.30:
+        actions.append(f"ACTION: Increase diversification: Reason: The probability of loss is {prob_loss:.2%}, which is high and suggests overexposure to risk.")
+
+    for stock, data in data.items():
+        if stock == 'portfolio_stats':
+            continue
+        stock_actions = analyze_stock(stock, data)
+        actions.extend(stock_actions)
+
+    return actions
 
 
 def analyze_stock(ticker, data):
