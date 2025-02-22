@@ -5,16 +5,6 @@ import type React from "react"
 import { useState, useEffect } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { useSession } from "next-auth/react"
-import type { Session as NextAuthSession } from "next-auth"
-
-interface Session extends NextAuthSession {
-  user: {
-    id: string
-    name?: string | null
-    email?: string | null
-    image?: string | null
-  }
-}
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -24,16 +14,16 @@ import { toast } from "@/hooks/use-toast"
 
 type StockEntry = {
   ticker: string
-  shares: number
+  shares: string
 }
 
 export default function OnboardingForm() {
   const [portfolioName, setPortfolioName] = useState("")
-  const [stocks, setStocks] = useState<StockEntry[]>([{ ticker: "", shares: 0 }])
+  const [stocks, setStocks] = useState<StockEntry[]>([{ ticker: "", shares: "" }])
   const [isLoading, setIsLoading] = useState(false)
   const [isFetching, setIsFetching] = useState(true)
   const router = useRouter()
-  const { data: session, status } = useSession()
+  const { data: session, status } = useSession() as { data: { user: { id: string } } | null, status: string }
   const searchParams = useSearchParams()
   const portfolioId = searchParams.get("portfolioId")
 
@@ -79,19 +69,19 @@ export default function OnboardingForm() {
   }
 
   const addStock = () => {
-    setStocks([...stocks, { ticker: "", shares: 0 }])
+    setStocks([...stocks, { ticker: "", shares: "" }])
   }
 
   const removeStock = (index: number) => {
     const newStocks = stocks.filter((_, i) => i !== index)
-    setStocks(newStocks.length ? newStocks : [{ ticker: "", shares: 0 }])
+    setStocks(newStocks.length ? newStocks : [{ ticker: "", shares: "" }])
   }
 
-  const updateStock = (index: number, field: keyof StockEntry, value: string | number) => {
+  const updateStock = (index: number, field: keyof StockEntry, value: string) => {
     const newStocks = [...stocks]
     newStocks[index] = {
       ...newStocks[index],
-      [field]: field === "ticker" ? (value as string).toUpperCase() : Math.max(0, Number(value)),
+      [field]: field === "ticker" ? value.toUpperCase() : value,
     }
     setStocks(newStocks)
   }
@@ -100,13 +90,16 @@ export default function OnboardingForm() {
     e.preventDefault()
     setIsLoading(true)
     try {
-      if (!(session as Session)?.user?.id) {
+      if (!session?.user?.id) {
         throw new Error("User not authenticated. Please log in and try again.")
       }
-      const validStocks = stocks.filter((stock) => stock.ticker.trim() !== "" && stock.shares > 0)
+      const validStocks = stocks.filter((stock) => stock.ticker.trim() !== "" && stock.shares !== "")
       const portfolioData = {
         name: portfolioName,
-        holdings: validStocks,
+        holdings: validStocks.map((stock) => ({
+          ...stock,
+          shares: Number.parseInt(stock.shares, 10),
+        })),
       }
       const url = portfolioId ? `/api/portfolios/${portfolioId}` : "/api/portfolios"
       const method = portfolioId ? "PUT" : "POST"

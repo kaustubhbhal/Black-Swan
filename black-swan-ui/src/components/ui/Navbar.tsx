@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import Link from "next/link"
+import Image from "next/image"
 import type { Session } from "next-auth"
 import SignOutButton from "./SignOutButton"
 import MobileMenu from "./MobileMenu"
@@ -30,7 +31,16 @@ export default function Navbar({ session, status }: NavbarProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
-            <span className="text-2xl font-bold">BlackSwan</span>
+            <div className="relative w-12 h-12 mr-2">
+              <Image
+                src="/logo2.png"
+                alt="BlackSwan Logo"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <span className="text-2xl font-bold">Black Swan</span>
           </Link>
           {status === "authenticated" && (
             <>
