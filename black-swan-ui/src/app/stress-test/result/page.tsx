@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useRef } from "react"
 import { useSearchParams } from "next/navigation"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -9,6 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { AlertCircle } from "lucide-react"
 import StressTestAnalysis from "@/components/ui/StressTestAnalysis"
 import { ChevronDown, ChevronUp } from "lucide-react"
+import PdfExportButton from "@/components/ui/PdfExportButton"
 
 type FakeEvent = {
   fake_event: string
@@ -27,8 +28,10 @@ export default function StressTestResult() {
   const [hasError, setHasError] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [showHistorical, setShowHistorical] = useState(true)
+  const [isContentReady, setIsContentReady] = useState(false)
   const searchParams = useSearchParams()
   const router = useRouter()
+  const contentRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const fetchData = async () => {
@@ -57,6 +60,7 @@ export default function StressTestResult() {
         setHasError(true)
       } finally {
         setIsLoading(false)
+        setIsContentReady(true)
       }
     }
 
@@ -94,58 +98,64 @@ export default function StressTestResult() {
 
   return (
     <div className="container mx-auto px-4 py-8">
-      <h1 className="text-3xl font-bold mb-6">Stress Test Result</h1>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Stress Test Result</h1>
+        {isContentReady && (
+          <PdfExportButton targetRef={contentRef} filename={`stress-test-${event?.name || "results"}.pdf`} />
+        )}
+      </div>
+      <div ref={contentRef}>
+        {event && (
+          <Card className="mb-6">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <div>
+                <CardTitle>Historical Event: {event.name}</CardTitle>
+                <CardDescription>Click to {showHistorical ? "hide" : "show"} details</CardDescription>
+              </div>
+              <Button variant="ghost" size="sm" onClick={toggleHistorical}>
+                {showHistorical ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
+              </Button>
+            </CardHeader>
+            {showHistorical && (
+              <CardContent>
+                <div className="space-y-2">
+                  <p>
+                    <span className="font-semibold">Start Date:</span> {event.start_date}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Rarity:</span> {event.rarity}
+                  </p>
+                  <p>
+                    <span className="font-semibold">Description:</span> {event.description}
+                  </p>
+                </div>
+              </CardContent>
+            )}
+          </Card>
+        )}
 
-      {event && (
-        <Card className="mb-6">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <div>
-              <CardTitle>Historical Event: {event.name}</CardTitle>
-              <CardDescription>Click to {showHistorical ? "hide" : "show"} details</CardDescription>
-            </div>
-            <Button variant="ghost" size="sm" onClick={toggleHistorical}>
-              {showHistorical ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
-            </Button>
-          </CardHeader>
-          {showHistorical && (
+        {fakeEvent && (
+          <Card className="mb-6">
+            <CardHeader>
+              <CardTitle>Simulated Black Swan Event</CardTitle>
+              <CardDescription>Hypothetical future scenario used for stress testing</CardDescription>
+            </CardHeader>
             <CardContent>
-              <div className="space-y-2">
-                <p>
-                  <span className="font-semibold">Start Date:</span> {event.start_date}
-                </p>
-                <p>
-                  <span className="font-semibold">Rarity:</span> {event.rarity}
-                </p>
-                <p>
-                  <span className="font-semibold">Description:</span> {event.description}
-                </p>
+              <div className="prose max-w-none dark:prose-invert">
+                {fakeEvent.fake_event.split("\n").map((paragraph, index) => (
+                  <p key={index} className="mb-4 last:mb-0">
+                    {paragraph.startsWith("**") ? <strong>{paragraph.replace(/\*\*/g, "")}</strong> : paragraph}
+                  </p>
+                ))}
               </div>
             </CardContent>
-          )}
-        </Card>
-      )}
+          </Card>
+        )}
 
-      {fakeEvent && (
-        <Card className="mb-6">
-          <CardHeader>
-            <CardTitle>Simulated Black Swan Event</CardTitle>
-            <CardDescription>Hypothetical future scenario used for stress testing</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="prose max-w-none dark:prose-invert">
-              {fakeEvent.fake_event.split("\n").map((paragraph, index) => (
-                <p key={index} className="mb-4 last:mb-0">
-                  {paragraph.startsWith("**") ? <strong>{paragraph.replace(/\*\*/g, "")}</strong> : paragraph}
-                </p>
-              ))}
-            </div>
-          </CardContent>
-        </Card>
-      )}
+        <StressTestAnalysis />
+      </div>
 
-      <StressTestAnalysis />
-
-      <div className="mt-6">
+      <div className="mt-6 flex justify-between items-center">
         <Button onClick={handleBackToStressTest}>Back to Stress Test</Button>
       </div>
     </div>
