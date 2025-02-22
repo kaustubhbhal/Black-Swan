@@ -44,8 +44,17 @@ export async function PUT(request: Request, { params }: { params: { portfolioId:
     const updateData: { [key: string]: any } = {}
 
     if (name !== undefined) updateData.name = name
-    if (holdings !== undefined) updateData.holdings = holdings
     if (isStarred !== undefined) updateData.isStarred = isStarred
+
+    if (holdings !== undefined) {
+      // Calculate total value and percentages
+      const totalValue = holdings.reduce((sum: number, holding: any) => sum + holding.value, 0)
+      const holdingsWithPercentage = holdings.map((holding: any) => ({
+        ...holding,
+        percentOfPortfolio: ((holding.value / totalValue) * 100).toFixed(2),
+      }))
+      updateData.holdings = holdingsWithPercentage
+    }
 
     if (Object.keys(updateData).length === 0) {
       return NextResponse.json({ error: "No valid update data provided" }, { status: 400 })

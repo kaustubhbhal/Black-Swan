@@ -36,17 +36,17 @@ export default function PortfoliosPage() {
   const fetchPortfolios = async () => {
     try {
       const response = await fetch("/api/portfolios")
-      if (response.ok) {
-        const data = await response.json()
-        setPortfolios(data)
-      } else {
-        throw new Error("Failed to fetch portfolios")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to fetch portfolios")
       }
+      const data = await response.json()
+      setPortfolios(data)
     } catch (error) {
       console.error("Error fetching portfolios:", error)
       toast({
         title: "Error",
-        description: "Failed to fetch portfolios. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to fetch portfolios. Please try again.",
         variant: "destructive",
       })
     } finally {
@@ -60,23 +60,26 @@ export default function PortfoliosPage() {
       const response = await fetch("/api/portfolios", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: newPortfolioName }),
+        body: JSON.stringify({
+          name: newPortfolioName,
+          holdings: [], // Initialize with empty holdings
+        }),
       })
-      if (response.ok) {
-        setNewPortfolioName("")
-        fetchPortfolios()
-        toast({
-          title: "Success",
-          description: "New portfolio created successfully.",
-        })
-      } else {
-        throw new Error("Failed to create portfolio")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to create portfolio")
       }
+      setNewPortfolioName("")
+      fetchPortfolios()
+      toast({
+        title: "Success",
+        description: "New portfolio created successfully.",
+      })
     } catch (error) {
       console.error("Error creating portfolio:", error)
       toast({
         title: "Error",
-        description: "Failed to create portfolio. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to create portfolio. Please try again.",
         variant: "destructive",
       })
     }
@@ -87,20 +90,20 @@ export default function PortfoliosPage() {
       const response = await fetch(`/api/portfolios/${portfolioId}/star`, {
         method: "PUT",
       })
-      if (response.ok) {
-        fetchPortfolios()
-        toast({
-          title: "Success",
-          description: "Portfolio starred successfully.",
-        })
-      } else {
-        throw new Error("Failed to star portfolio")
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || "Failed to star portfolio")
       }
+      fetchPortfolios()
+      toast({
+        title: "Success",
+        description: "Portfolio starred successfully.",
+      })
     } catch (error) {
       console.error("Error starring portfolio:", error)
       toast({
         title: "Error",
-        description: "Failed to star portfolio. Please try again.",
+        description: error instanceof Error ? error.message : "Failed to star portfolio. Please try again.",
         variant: "destructive",
       })
     }
@@ -112,16 +115,15 @@ export default function PortfoliosPage() {
         const response = await fetch(`/api/portfolios/${portfolioId}`, {
           method: "DELETE",
         })
-        if (response.ok) {
-          fetchPortfolios()
-          toast({
-            title: "Success",
-            description: "Portfolio deleted successfully.",
-          })
-        } else {
+        if (!response.ok) {
           const errorData = await response.json()
           throw new Error(errorData.error || "Failed to delete portfolio")
         }
+        fetchPortfolios()
+        toast({
+          title: "Success",
+          description: "Portfolio deleted successfully.",
+        })
       } catch (error) {
         console.error("Error deleting portfolio:", error)
         toast({

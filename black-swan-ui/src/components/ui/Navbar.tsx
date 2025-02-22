@@ -2,6 +2,7 @@ import Link from "next/link"
 import type { Session } from "next-auth"
 import SignOutButton from "./SignOutButton"
 import MobileMenu from "./MobileMenu"
+import { useTheme } from "@/app/contexts/ThemeContext"
 
 interface NavbarProps {
   session: Session | null
@@ -13,11 +14,14 @@ export default function Navbar({ session, status }: NavbarProps) {
     { href: "/dashboard", label: "Dashboard" },
     { href: "/portfolios", label: "Portfolios" },
     { href: "/onboarding", label: "Onboarding" },
+    { href: "/stress-test", label: "Stress Test" },
     { href: "/settings", label: "Settings" },
   ]
 
+  const { theme } = useTheme()
+
   return (
-    <nav className="bg-gray-800 text-white shadow-lg">
+    <nav className="bg-gray-800 dark:bg-gray-900 text-white shadow-lg">
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
@@ -31,7 +35,7 @@ export default function Navbar({ session, status }: NavbarProps) {
                     <Link
                       key={link.href}
                       href={link.href}
-                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 transition duration-150 ease-in-out"
+                      className="px-3 py-2 rounded-md text-sm font-medium text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-800 transition duration-150 ease-in-out"
                     >
                       {link.label}
                     </Link>
@@ -44,7 +48,7 @@ export default function Navbar({ session, status }: NavbarProps) {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700"
+                    className="block px-3 py-2 rounded-md text-base font-medium text-gray-300 hover:text-white hover:bg-gray-700 dark:hover:bg-gray-800"
                   >
                     {link.label}
                   </Link>
@@ -58,3 +62,4 @@ export default function Navbar({ session, status }: NavbarProps) {
     </nav>
   )
 }
+

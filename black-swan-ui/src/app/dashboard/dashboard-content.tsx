@@ -19,6 +19,7 @@ type PortfolioItem = {
   percentOfPortfolio: number
   industry: string
   companyName: string
+  error?: string | null
 }
 
 type Portfolio = {
@@ -62,28 +63,58 @@ export default function DashboardContent() {
         }
         const portfolioData = await detailResponse.json()
 
-        // Calculate stock details
+        // Fetch real-time stock prices
         const updatedHoldings = await Promise.all(
           portfolioData.holdings.map(async (holding: PortfolioItem) => {
-            const stockInfo = await fetchStockInfo(holding.ticker)
-            return {
-              ...holding,
-              ...stockInfo,
-              value: stockInfo.currentPrice * holding.shares,
+            try {
+              const stockInfo = await fetchStockInfo(holding.ticker)
+              return {
+                ...holding,
+                currentPrice: stockInfo.currentPrice,
+                change: stockInfo.change,
+                changePercent: stockInfo.changePercent,
+                value: stockInfo.currentPrice * holding.shares,
+                industry: stockInfo.industry || holding.industry,
+                companyName: stockInfo.companyName || holding.companyName,
+                error: null,
+              }
+            } catch (error) {
+              console.error(`Error fetching stock info for ${holding.ticker}:`, error)
+              return {
+                ...holding,
+                error: `Invalid ticker: ${holding.ticker}`,
+              }
             }
           }),
         )
 
-        const totalValue = updatedHoldings.reduce((sum, item) => sum + item.value, 0)
-        const holdingsWithPercentage = updatedHoldings.map((item) => ({
+        // Filter out invalid tickers
+        const validHoldings = updatedHoldings.filter((holding) => !holding.error)
+
+        // Recalculate total value and percentages
+        const totalValue = validHoldings.reduce((sum, item) => sum + item.value, 0)
+        const holdingsWithUpdatedPercentage = validHoldings.map((item) => ({
           ...item,
-          percentOfPortfolio: (item.value / totalValue) * 100,
+          percentOfPortfolio: ((item.value / totalValue) * 100).toFixed(2),
         }))
+
+        // Update the portfolio in the database
+        await updatePortfolio(portfolioData._id, holdingsWithUpdatedPercentage)
 
         setPortfolio({
           ...portfolioData,
-          holdings: holdingsWithPercentage,
+          holdings: holdingsWithUpdatedPercentage,
         })
+
+        // Show toast for removed tickers
+        const removedTickers = updatedHoldings.filter((holding) => holding.error).map((holding) => holding.ticker)
+        if (removedTickers.length > 0) {
+          toast({
+            title: "Invalid Tickers Removed",
+            description: `The following tickers were invalid and have been removed: ${removedTickers.join(", ")}`,
+            variant: "warning",
+          })
+        }
       } else {
         setPortfolio(null)
       }
@@ -103,9 +134,24 @@ export default function DashboardContent() {
   const fetchStockInfo = async (ticker: string) => {
     const response = await fetch(`/api/stock-info?ticker=${ticker}`)
     if (!response.ok) {
-      throw new Error(`Failed to fetch stock info for ${ticker}`)
+      const errorData = await response.json()
+      //throw new Error(errorData.error || `Failed to fetch stock info for ${ticker}`)
     }
     return response.json()
+  }
+
+  const updatePortfolio = async (portfolioId: string, holdings: PortfolioItem[]) => {
+    const response = await fetch(`/api/portfolios/${portfolioId}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ holdings }),
+    })
+
+    if (!response.ok) {
+      throw new Error("Failed to update portfolio")
+    }
   }
 
   const handleLogout = () => {
@@ -186,7 +232,7 @@ export default function DashboardContent() {
                         {item.change.toFixed(2)} ({item.changePercent.toFixed(2)}%)
                       </td>
                       <td className="text-right p-2">${item.value.toFixed(2)}</td>
-                      <td className="text-right p-2">{item.percentOfPortfolio.toFixed(2)}%</td>
+                      <td className="text-right p-2">{item.percentOfPortfolio}%</td>
                     </tr>
                   ))}
                 </tbody>
