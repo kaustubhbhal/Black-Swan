@@ -65,7 +65,7 @@ def get_portfolio():
 def post_swans():
     # Call the /get_portfolio route
     response = requests.get("${flask_url}/get_portfolio")
-
+    print(response)
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch portfolio"}), 500
     
