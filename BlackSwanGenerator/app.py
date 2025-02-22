@@ -14,6 +14,7 @@ from recommend.quant_modeling import analyze_portfolio
 load_dotenv()
 api_key = os.getenv("API_KEY")
 claude_api_key = os.getenv("CLAUDE_API_KEY")
+flask_url = os.getenv("NEXT_PUBLIC_FLASK_API_URL")
 
 # MongoDB connection details
 MONGO_URI = os.getenv("MONGO_URI")
@@ -63,7 +64,7 @@ def get_portfolio():
 @app.route('/post_swans', methods=['GET'])  # Change to GET
 def post_swans():
     # Call the /get_portfolio route
-    response = requests.get("http://127.0.0.1:5000/get_portfolio")
+    response = requests.get("${flask_url}/get_portfolio")
 
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch portfolio"}), 500
@@ -112,7 +113,7 @@ def get_string():
 
 @app.route('/get_jack', methods=['GET'])
 def get_jack():
-    response = requests.get("http://127.0.0.1:5000/get_string")
+    response = requests.get("${flask_url}/get_string")
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch string"}), 500
 
