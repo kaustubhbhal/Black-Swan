@@ -25,7 +25,7 @@ class StockStats:
         self.sigma_J = None
         self.estimate_jump_params()
         # Store 20 simulations
-        self.simulations = np.zeros((20, 252))
+        self.simulations = None
         self.jumping = jumping
 
     def calculate_statistics(self):
@@ -107,13 +107,15 @@ class StockStats:
             idiosyncratic_volatility = self.calculateIdiosyncraticVolatility()
             jump = self.calculateJump()
             S[i] = S[i - 1] * np.exp(drift + systematic_volatility + idiosyncratic_volatility + jump)
+        self.simulations = S
         return S
     
-    def getStatistics(self, simulations):
+    def getStatistics(self):
         """
         Calculate Value at Risk, Expected Shortfall (ES) or Conditional VaR, Maximum Drawdown, Distribution Percentiles, Mean and Standard Deviation, Skewness and Kurtosis, and Probability of Losses Exceeding a Given Threshold.
         simulations is an array of shape (num_simulations, num_days), where each row is a simulation of stock prices over num_days days.
         """
+        simulations = self.simulations
         final_values = simulations[:, -1]
         var_95 = np.percentile(final_values, 5)
         es_95 = np.mean(final_values[final_values < var_95])
@@ -132,7 +134,8 @@ class StockStats:
             'std_dev': std_dev,
             'skewness': skewness,
             'kurtosis': kurtosis,
-            'prob_loss': prob_loss
+            'prob_loss': prob_loss,
+            'initial_value': self.start_value
         }
 
     

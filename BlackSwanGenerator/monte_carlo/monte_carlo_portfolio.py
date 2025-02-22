@@ -23,6 +23,7 @@ class PortfolioMonteCarlo:
             self.stocks.append(StockStats(ticker, etf_ticker, history_start_date, history_end_date, shares))
         self.num_stocks = len(self.stocks)
         self.simulations = None
+        self.portfolio_value
 
     def simulate(self, num_simulations, num_days):
         """
@@ -128,7 +129,6 @@ class PortfolioMonteCarlo:
         var_95 = np.percentile(final_values, 5)
         es_95 = np.mean(final_values[final_values < var_95])
         max_drawdown = np.max(np.maximum.accumulate(final_values) - final_values)
-        distribution_percentiles = np.percentile(final_values, [1, 5, 25, 50, 75, 95, 99])
         mean = np.mean(final_values)
         std_dev = np.std(final_values)
         skewness = stats.skew(final_values)
@@ -140,7 +140,6 @@ class PortfolioMonteCarlo:
             'var_95': var_95,
             'es_95': es_95,
             'max_drawdown': max_drawdown,
-            #'distribution_percentiles': distribution_percentiles,
             'mean': mean,
             'std_dev': std_dev,
             'skewness': skewness,
