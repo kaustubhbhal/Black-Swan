@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import { NextResponse } from "next/server"
 import clientPromise from "@/lib/mongodb"
 import { getServerSession } from "next-auth/next"
