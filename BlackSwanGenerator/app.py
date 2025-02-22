@@ -24,6 +24,10 @@ USER_ID = os.getenv("USER_ID")
 app = Flask(__name__)
 CORS(app)
 
+@app.route('/')
+def home():
+    return jsonify({'message': 'Flask API is running!'})
+
 # In-memory storage for portfolio ID (not persistent)
 portfolio_data = {}
 # In-memory storage for the fake event (not persistent)

@@ -4,3 +4,7 @@ pymongo
 openai
 dotenv
 requests
+yfinance
+statsmodels
+matplotlib
+gunicorn

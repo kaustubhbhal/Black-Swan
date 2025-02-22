@@ -64,7 +64,7 @@ export default function StressTestPage() {
 
   const getCurrentTestPortfolio = async () => {
     try {
-      const response = await fetch(`${FLASK_API_URL}/get_portfolio`)
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/get_portfolio`)
       if (response.ok) {
         const data = await response.json()
         setCurrentTestPortfolio(data.portfolio_id)
@@ -88,7 +88,7 @@ export default function StressTestPage() {
     setIsFetchingEvents(true)
     try {
       // First, add the portfolio
-      const addResponse = await fetch(`${FLASK_API_URL}/add_portfolio`, {
+      const addResponse = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/add_portfolio`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -104,7 +104,7 @@ export default function StressTestPage() {
       setCurrentTestPortfolio(addResult.id)
 
       // Then, fetch the swan events using GET method
-      const swansResponse = await fetch(`${FLASK_API_URL}/post_swans`, {
+      const swansResponse = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/post_swans`, {
         method: "GET",
       })
 
@@ -139,7 +139,7 @@ export default function StressTestPage() {
       console.error("Error initiating stress test:", error)
       toast({
         title: "Error",
-        description: `Failed to initiate stress test: ${error instanceof Error ? error.message : 'Unknown error'}`,
+        description: `Failed to initiate stress test: ${(error as Error).message}`,
         variant: "destructive",
       })
     } finally {
@@ -150,7 +150,7 @@ export default function StressTestPage() {
 
   const handleClearTest = async () => {
     try {
-      const response = await fetch(`${FLASK_API_URL}/clear_portfolio`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/clear_portfolio`, {
         method: "DELETE",
       })
 
@@ -191,7 +191,7 @@ export default function StressTestPage() {
 
     try {
       const concatenatedString = `${selectedEvent.name} ${selectedEvent.start_date}`
-      const response = await fetch(`${FLASK_API_URL}/post_string`, {
+      const response = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/post_string`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

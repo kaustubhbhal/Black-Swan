@@ -46,7 +46,7 @@ export default function StressTestResult() {
         setHasError(errorParam === "true")
 
         // Fetch fake event data
-        const fakeEventResponse = await fetch("http://127.0.0.1:5000/get_fake_event")
+        const fakeEventResponse = await fetch(`${process.env.NEXT_PUBLIC_FLASK_API_URL}/get_fake_event`)
         if (!fakeEventResponse.ok) {
           throw new Error("Failed to fetch fake event data")
         }
