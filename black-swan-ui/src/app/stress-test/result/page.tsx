@@ -42,8 +42,8 @@ export default function StressTestResult() {
     <div className="container mx-auto px-4 py-8">
       <Card>
         <CardHeader>
-          <CardTitle>Stress Test Result</CardTitle>
-          <CardDescription>The selected event has been submitted for stress testing</CardDescription>
+          <CardTitle>Stress Test Modeling</CardTitle>
+          <CardDescription>The following event has been theorized based on the selected historical event</CardDescription>
         </CardHeader>
         <CardContent>
           <h2 className="text-xl font-semibold mb-2">{event.name}</h2>
@@ -57,9 +57,9 @@ export default function StressTestResult() {
             <strong>Description:</strong> {event.description}
           </p>
           <p className="mb-4">
-            The stress test for this event has been initiated. Please check back later for the results.
+            The stress test for this event has been initiated. Results will post here soon.
           </p>
-          <Button onClick={handleBackToStressTest}>Back to Stress Test</Button>
+          <Button onClick={handleBackToStressTest}>Back to Stress Test Selection</Button>
         </CardContent>
       </Card>
     </div>
