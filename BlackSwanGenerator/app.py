@@ -29,7 +29,6 @@ portfolio_data = {}
 # In-memory storage for the fake event (not persistent)
 global fake_event_string
 global JackStatsClass
-recommendations = {}
 
 @app.route('/add_portfolio', methods=['POST'])
 def add_portfolio():

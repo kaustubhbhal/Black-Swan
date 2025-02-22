@@ -65,10 +65,11 @@ def analyze_portfolio(data):
             {"role": "system", "content": system_message},
             {"role": "user", "content": message}
         ],
-        temperature=0.7
+        temperature=0.5
     )
 
     summary = response.choices[0].message.content
+    print(actions, summary, "HAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA")
 
     return actions, summary
 
