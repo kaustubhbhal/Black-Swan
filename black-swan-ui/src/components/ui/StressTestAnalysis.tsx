@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import Image from "next/image"
 
 type StockData = {
   beta: number
@@ -27,20 +28,36 @@ type StressTestData = {
   [key: string]: StockData | PortfolioStats
 }
 
+type ImageData = {
+  data: {
+    image: string
+  }
+  name: string
+}
+
 export default function StressTestAnalysis() {
   const [data, setData] = useState<StressTestData | null>(null)
+  const [images, setImages] = useState<ImageData[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch("http://127.0.0.1:5000/get_jack")
-        if (!response.ok) {
+        const [analysisResponse, imagesResponse] = await Promise.all([
+          fetch("http://127.0.0.1:5000/get_jack"),
+          fetch("http://127.0.0.1:5000/get_jack_images"),
+        ])
+
+        if (!analysisResponse.ok || !imagesResponse.ok) {
           throw new Error("Failed to fetch stress test data")
         }
-        const result = await response.json()
-        setData(result)
+
+        const analysisResult = await analysisResponse.json()
+        const imagesResult = await imagesResponse.json()
+
+        setData(analysisResult)
+        setImages(imagesResult.images)
       } catch (err) {
         setError("Failed to load stress test data")
         console.error(err)
@@ -69,8 +86,12 @@ export default function StressTestAnalysis() {
     }).format(num)
   }
 
+  const base64ToDataUrl = (base64: string) => {
+    return `data:image/png;base64,${base64}`
+  }
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-8">
       <Card>
         <CardHeader>
           <CardTitle>Portfolio Statistics</CardTitle>
@@ -166,6 +187,32 @@ export default function StressTestAnalysis() {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Stress Test Visualizations</CardTitle>
+          <CardDescription>Generated images from the stress test analysis</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-12">
+          {images.map((image, index) => (
+            <div key={index} className="space-y-4">
+              <h3 className="text-xl font-semibold text-center">
+                {index === 0 ? "Monte Carlo Simulation of Portfolio Value" : "Distribution of Annualized Returns"}
+              </h3>
+              <div className="relative w-full aspect-[16/9] max-w-4xl mx-auto">
+                <Image
+                  src={base64ToDataUrl(image.data.image) || "/placeholder.svg"}
+                  alt={index === 0 ? "Monte Carlo Simulation of Portfolio Value" : "Distribution of Annualized Returns"}
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                  style={{ objectFit: "contain" }}
+                  className="rounded-lg shadow-lg"
+                />
+              </div>
+            </div>
+          ))}
+        </CardContent>
+      </Card>
     </div>
   )
 }

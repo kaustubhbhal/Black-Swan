@@ -7,6 +7,8 @@ from .stats import StockStats
 from scipy import stats
 import base64
 from io import BytesIO
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import json
 
@@ -65,9 +67,6 @@ class PortfolioMonteCarlo:
         # Create a JSON object with the base64 image
         img_json = {'image': img_base64}
 
-        # Save the JSON object to a file
-        with open('portfolio_simulations.json', 'w') as f:
-            json.dump(img_json, f)
         
         return img_json
 
@@ -96,10 +95,6 @@ class PortfolioMonteCarlo:
         # Create a JSON object with the base64 image
         img_json1 = {'image': img_base64_1}
 
-        # Save the JSON object to a file
-        with open('portfolio_simulations.json', 'w') as f:
-            json.dump(img_json1, f)
-        
         return img_json1
 
 

@@ -61,7 +61,7 @@ class StockStats:
         self.sig_idio = np.sqrt(self.sig_S ** 2 - self.beta ** 2 * self.sig_ETF ** 2)
 
     def estimate_jump_params(self):
-        jump_thresholds = stats.norm.ppf(0.01)  # 1% quantile for a normal distribution
+        jump_thresholds = stats.norm.ppf(0.005)  # 1% quantile for a normal distribution
         
         etf_hist = yf.download(self.ETF, start=self.start_date, end=self.end_date)
         etf_hist['LogReturn'] = np.log(etf_hist['Close'] / etf_hist["Close"].shift(1)).dropna()

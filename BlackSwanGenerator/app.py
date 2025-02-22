@@ -171,7 +171,7 @@ def get_jack_images():
 
     if not monte_image or not returns_annualized_image:
         return jsonify({"error": "No images generated"}), 500
-
+    
     # Convert images to a format suitable for JSON response
     image_data = [
         {
@@ -223,7 +223,7 @@ def generate_fake_event(string_data):
             {'role': 'system', 'content': sys_prompt},
             {'role': 'user', 'content': prompt}
         ],
-        temperature = 0.3
+        temperature = 0.75
     )
 
     return response.choices[0].message.content
