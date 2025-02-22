@@ -143,7 +143,7 @@ def get_jack():
             "sig_idio": stock.sig_idio, 
             "lambda_jump": stock.lambda_jump,
             "start_value": stock.start_value,
-            "stock_stats": stock.getStatistics()
+            "stock_stats": stock.statistics
         }
 
     return answer_dict, 200

@@ -9,22 +9,22 @@ import Image from "next/image"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 
 type StockData = {
-  beta: number
-  lambda_jump: number
-  sig_etf: number
-  sig_idio: number
-  sig_s: number
+  beta: number | null
+  lambda_jump: number | null
+  sig_etf: number | null
+  sig_idio: number | null
+  sig_s: number | null
 }
 
 type PortfolioStats = {
-  es_95: number
-  kurtosis: number
-  max_drawdown: number
-  mean: number
-  prob_loss: number
-  skewness: number
-  std_dev: number
-  var_95: number
+  es_95: number | null
+  kurtosis: number | null
+  max_drawdown: number | null
+  mean: number | null
+  prob_loss: number | null
+  skewness: number | null
+  std_dev: number | null
+  var_95: number | null
 }
 
 type StressTestData = {
@@ -56,7 +56,8 @@ export default function StressTestAnalysis() {
           throw new Error("Failed to fetch stress test data")
         }
 
-        const analysisResult = await analysisResponse.json()
+        const analysisText = await analysisResponse.text()
+        const analysisResult = JSON.parse(analysisText.replace(/NaN/g, "null"))
         const imagesResult = await imagesResponse.json()
 
         setData(analysisResult)
@@ -100,7 +101,8 @@ export default function StressTestAnalysis() {
   ) as [string, StockData][]
   const portfolioStats = data.portfolio_stats as PortfolioStats
 
-  const formatLargeNumber = (num: number) => {
+  const formatLargeNumber = (num: number | null) => {
+    if (num === null || isNaN(num)) return "N/A"
     return new Intl.NumberFormat("en-US", {
       notation: "compact",
       compactDisplay: "short",
@@ -127,7 +129,9 @@ export default function StressTestAnalysis() {
             >
               <span className="text-sm font-medium text-muted-foreground">Expected Shortfall (95%)</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.es_95)}</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.es_95 !== null ? `$${formatLargeNumber(portfolioStats.es_95)}` : "N/A"}
+            </span>
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
@@ -136,7 +140,9 @@ export default function StressTestAnalysis() {
             >
               <span className="text-sm font-medium text-muted-foreground">Value at Risk (95%)</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.var_95)}</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.var_95 !== null ? `$${formatLargeNumber(portfolioStats.var_95)}` : "N/A"}
+            </span>
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
@@ -145,7 +151,9 @@ export default function StressTestAnalysis() {
             >
               <span className="text-sm font-medium text-muted-foreground">Max Drawdown</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.max_drawdown)}</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.max_drawdown !== null ? `$${formatLargeNumber(portfolioStats.max_drawdown)}` : "N/A"}
+            </span>
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
@@ -154,16 +162,20 @@ export default function StressTestAnalysis() {
             >
               <span className="text-sm font-medium text-muted-foreground">Probability of Loss</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">{(portfolioStats.prob_loss * 100).toFixed(2)}%</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.prob_loss !== null ? `${(portfolioStats.prob_loss * 100).toFixed(2)}%` : "N/A"}
+            </span>
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
               term="Mean Return"
               definition="The average return of the portfolio across all simulated scenarios."
             >
-              <span className="text-sm font-medium text-muted-foreground">Avg Final Value</span>
+              <span className="text-sm font-medium text-muted-foreground">Mean Return</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.mean)}</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.mean !== null ? `$${formatLargeNumber(portfolioStats.mean)}` : "N/A"}
+            </span>
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
@@ -172,7 +184,9 @@ export default function StressTestAnalysis() {
             >
               <span className="text-sm font-medium text-muted-foreground">Standard Deviation</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">${formatLargeNumber(portfolioStats.std_dev)}</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.std_dev !== null ? `$${formatLargeNumber(portfolioStats.std_dev)}` : "N/A"}
+            </span>
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
@@ -181,7 +195,9 @@ export default function StressTestAnalysis() {
             >
               <span className="text-sm font-medium text-muted-foreground">Skewness</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">{portfolioStats.skewness.toFixed(2)}</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.skewness !== null ? portfolioStats.skewness.toFixed(2) : "N/A"}
+            </span>
           </div>
           <div className="flex flex-col">
             <DefinitionTooltip
@@ -190,7 +206,9 @@ export default function StressTestAnalysis() {
             >
               <span className="text-sm font-medium text-muted-foreground">Kurtosis</span>
             </DefinitionTooltip>
-            <span className="text-2xl font-bold">{portfolioStats.kurtosis.toFixed(2)}</span>
+            <span className="text-2xl font-bold">
+              {portfolioStats.kurtosis !== null ? portfolioStats.kurtosis.toFixed(2) : "N/A"}
+            </span>
           </div>
         </CardContent>
       </Card>
@@ -232,24 +250,49 @@ export default function StressTestAnalysis() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">β</span>
-                  <span className="font-bold">{data.beta.toFixed(2)}</span>
+                  <DefinitionTooltip
+                    term="Beta"
+                    definition="A measure of a stock's volatility in relation to the overall market."
+                  >
+                    <span className="text-sm font-medium text-muted-foreground">Beta</span>
+                  </DefinitionTooltip>
+                  <span className="font-bold">{data.beta !== null ? data.beta.toFixed(2) : "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">λ<sub>jump</sub></span>
-                  <span className="font-bold">{data.lambda_jump.toFixed(2)}</span>
+                  <DefinitionTooltip
+                    term="Lambda Jump"
+                    definition="The frequency of jumps in the stock price, modeling sudden, significant price changes."
+                  >
+                    <span className="text-sm font-medium text-muted-foreground">Lambda Jump</span>
+                  </DefinitionTooltip>
+                  <span className="font-bold">{data.lambda_jump !== null ? data.lambda_jump.toFixed(2) : "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">σ<sub>ETF</sub></span>
-                  <span className="font-bold">{data.sig_etf.toFixed(4)}</span>
+                  <DefinitionTooltip
+                    term="Sig ETF"
+                    definition="The volatility of the stock's returns attributable to ETF-specific factors."
+                  >
+                    <span className="text-sm font-medium text-muted-foreground">Sig ETF</span>
+                  </DefinitionTooltip>
+                  <span className="font-bold">{data.sig_etf !== null ? data.sig_etf.toFixed(4) : "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">σ<sub>idiosyncratic</sub></span>
-                  <span className="font-bold">{data.sig_idio.toFixed(4)}</span>
+                  <DefinitionTooltip
+                    term="Sig Idio"
+                    definition="The idiosyncratic volatility of the stock, representing company-specific risk."
+                  >
+                    <span className="text-sm font-medium text-muted-foreground">Sig Idio</span>
+                  </DefinitionTooltip>
+                  <span className="font-bold">{data.sig_idio !== null ? data.sig_idio.toFixed(4) : "N/A"}</span>
                 </div>
                 <div className="flex justify-between">
-                    <span className="text-sm font-medium text-muted-foreground">σ<sub>s</sub></span>
-                  <span className="font-bold">{data.sig_s.toFixed(4)}</span>
+                  <DefinitionTooltip
+                    term="Sig S"
+                    definition="The overall volatility of the stock, combining systematic and idiosyncratic risks."
+                  >
+                    <span className="text-sm font-medium text-muted-foreground">Sig S</span>
+                  </DefinitionTooltip>
+                  <span className="font-bold">{data.sig_s !== null ? data.sig_s.toFixed(4) : "N/A"}</span>
                 </div>
               </div>
             </CardContent>
@@ -263,23 +306,57 @@ export default function StressTestAnalysis() {
           <CardDescription>Generated images from the stress test analysis</CardDescription>
         </CardHeader>
         <CardContent className="space-y-12">
-          {images.map((image, index) => (
-            <div key={index} className="space-y-4">
-              <h3 className="text-xl font-semibold text-center">
-                {index === 0 ? "Monte Carlo Simulation of Portfolio Value" : "Distribution of Annualized Returns"}
-              </h3>
-              <div className="relative w-full aspect-[16/9] max-w-4xl mx-auto">
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-center">Portfolio Value With Jump Risk</h3>
+              <div className="relative w-full aspect-[16/9]">
                 <Image
-                  src={base64ToDataUrl(image.data.image) || "/placeholder.svg"}
-                  alt={index === 0 ? "Monte Carlo Simulation of Portfolio Value" : "Distribution of Annualized Returns"}
+                  src={base64ToDataUrl(images[0].data.image) || "/placeholder.svg"}
+                  alt="Monte Carlo Simulation of Portfolio Value"
                   fill
-                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 35vw"
                   style={{ objectFit: "contain" }}
                   className="rounded-lg shadow-lg"
                 />
               </div>
+              <p className="text-center text-sm text-gray-500">
+                This graph shows multiple simulated paths of your portfolio value over time.
+              </p>
             </div>
-          ))}
+            <div className="space-y-4">
+              <h3 className="text-xl font-semibold text-center">Portfolio Value Without Jump Risk</h3>
+              <div className="relative w-full aspect-[16/9]">
+                <Image
+                  src={base64ToDataUrl(images[2].data.image) || "/placeholder.svg"}
+                  alt="Portfolio Value Without Jump Risk"
+                  fill
+                  sizes="(max-width: 768px) 100vw, (max-width: 1200px) 40vw, 35vw"
+                  style={{ objectFit: "contain" }}
+                  className="rounded-lg shadow-lg"
+                />
+              </div>
+              <p className="text-center text-sm text-gray-500">
+                This graph illustrates your portfolio value evolution without considering extreme market events.
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-xl font-semibold text-center">Distribution of Annualized Returns</h3>
+            <div className="relative w-full aspect-[16/9] max-w-4xl mx-auto">
+              <Image
+                src={base64ToDataUrl(images[1].data.image) || "/placeholder.svg"}
+                alt="Distribution of Annualized Returns"
+                fill
+                sizes="(max-width: 768px) 100vw, (max-width: 1200px) 80vw, 70vw"
+                style={{ objectFit: "contain" }}
+                className="rounded-lg shadow-lg"
+              />
+            </div>
+            <p className="text-center text-sm text-gray-500">
+              This histogram displays the distribution of possible annual returns for your portfolio.
+            </p>
+          </div>
         </CardContent>
       </Card>
     </div>

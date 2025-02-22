@@ -24,9 +24,10 @@ class StockStats:
         self.mu_J = None
         self.sigma_J = None
         self.estimate_jump_params()
-        # Store 20 simulations
+        # We want to store the simulations as a 2d numpy array
         self.simulations = None
         self.jumping = jumping
+        self.statistics = {}
 
     def calculate_statistics(self):
         # Assign the start value of the stock
@@ -107,7 +108,6 @@ class StockStats:
             idiosyncratic_volatility = self.calculateIdiosyncraticVolatility()
             jump = self.calculateJump()
             S[i] = S[i - 1] * np.exp(drift + systematic_volatility + idiosyncratic_volatility + jump)
-        self.simulations = S
         return S
     
     def getStatistics(self):
@@ -116,6 +116,7 @@ class StockStats:
         simulations is an array of shape (num_simulations, num_days), where each row is a simulation of stock prices over num_days days.
         """
         simulations = self.simulations
+        print(simulations)
         final_values = simulations[:, -1]
         var_95 = np.percentile(final_values, 5)
         es_95 = np.mean(final_values[final_values < var_95])
@@ -143,7 +144,7 @@ class StockStats:
         simulations = np.zeros((num_simulations, num_days))
         # Store the first 20 simulations for later plotting
         for i in range(num_simulations):
-            if i < 20:
-                self.simulations[i] = self.simulate(num_days)
             simulations[i] = self.simulate(num_days)
-        return self.getStatistics(simulations)
+        self.simulations = simulations
+        self.statistics = self.getStatistics()
+        return self.statistics

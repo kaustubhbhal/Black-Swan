@@ -23,7 +23,7 @@ class PortfolioMonteCarlo:
             self.stocks.append(StockStats(ticker, etf_ticker, history_start_date, history_end_date, shares))
         self.num_stocks = len(self.stocks)
         self.simulations = None
-        self.portfolio_value
+        self.portfolio_value = sum([s.start_value for s in self.stocks])
 
     def simulate(self, num_simulations, num_days):
         """
