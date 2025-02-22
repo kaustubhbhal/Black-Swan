@@ -117,8 +117,6 @@ def get_jack():
 
     string_data = response_data['selected-card']
     start, end = get_dates(string_data)
-    print("START", start)
-    print("END", end)
 
     fake_event = generate_fake_event(string_data)
     global fake_event_string
@@ -130,7 +128,6 @@ def get_jack():
         return jsonify({"error": "No portfolio ID found"}), 404
     
     portfolio_dict = read_mongo_database(MONGO_URI, DB_NAME, COLLECTION_NAME, portfolio_id, start)
-    print("JACKJACKJACKJACK", portfolio_dict)
 
     global JackStatsClass
     JackStatsClass = PortfolioMonteCarlo(portfolio_dict, start, end)
@@ -144,7 +141,9 @@ def get_jack():
             "sig_s": stock.sig_S, 
             "sig_etf": stock.sig_ETF, 
             "sig_idio": stock.sig_idio, 
-            "lambda_jump": stock.lambda_jump
+            "lambda_jump": stock.lambda_jump,
+            "start_value": stock.start_value,
+            "stock_stats": stock.getStatistics()
         }
 
     return answer_dict, 200
@@ -168,6 +167,7 @@ def get_jack_images():
     # Assuming JackStatsClass has methods to generate images
     monte_image = JackStatsClass.generate_monte()
     returns_annualized_image = JackStatsClass.generate_returns_annualized()
+    no_jump_image = JackStatsClass.generate_no_jump()
 
     if not monte_image or not returns_annualized_image:
         return jsonify({"error": "No images generated"}), 500
@@ -181,12 +181,15 @@ def get_jack_images():
         {
             "name": "returns_annualized_image",
             "data": returns_annualized_image  # Assuming returns_annualized_image is base64 encoded or similar
+        },
+        {
+            "name": "no_jump_image",
+            "data": no_jump_image  # Assuming no_jump_image is base64 encoded or similar
         }
     ]
 
     return jsonify({"images": image_data}), 200
-    
-    
+      
 
 
 def get_dates(string_data):
@@ -287,7 +290,7 @@ def getMessage(user_industries):
             {'role': 'system', 'content': system_prompt},
             {'role': 'user', 'content': prompt}
         ],
-        temperature = 0.3
+        temperature = 0.75
     )
     
     try:

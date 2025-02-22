@@ -61,7 +61,7 @@ class StockStats:
         self.sig_idio = np.sqrt(self.sig_S ** 2 - self.beta ** 2 * self.sig_ETF ** 2)
 
     def estimate_jump_params(self):
-        jump_thresholds = stats.norm.ppf(0.005)  # 1% quantile for a normal distribution
+        jump_thresholds = stats.norm.ppf(0.01)  # 1% quantile for a normal distribution
         
         etf_hist = yf.download(self.ETF, start=self.start_date, end=self.end_date)
         etf_hist['LogReturn'] = np.log(etf_hist['Close'] / etf_hist["Close"].shift(1)).dropna()
@@ -74,7 +74,7 @@ class StockStats:
         etf_hist.index = pd.to_datetime(etf_hist.index)
         period_years = len(etf_hist) / 252
 
-        self.lambda_jump = len(jump_events) / period_years
+        self.lambda_jump = len(jump_events) / period_years * self.dt
         self.mu_J = jump_events.mean()
         self.sigma_J = jump_events.std()
 
@@ -90,7 +90,7 @@ class StockStats:
     def calculateJump(self):
         if not self.jumping:
             return 0
-        N_T = np.random.poisson(self.lambda_jump * self.dt)
+        N_T = np.random.poisson(self.lambda_jump)
         if N_T > 0:
             jump_magnitudes = np.random.normal(self.mu_J, self.sigma_J, N_T)
             J_T = np.sum(jump_magnitudes)
@@ -118,14 +118,22 @@ class StockStats:
         var_95 = np.percentile(final_values, 5)
         es_95 = np.mean(final_values[final_values < var_95])
         max_drawdown = np.max(np.maximum.accumulate(final_values) - final_values)
-        distribution_percentiles = np.percentile(final_values, [1, 5, 25, 50, 75, 95, 99])
         mean = np.mean(final_values)
         std_dev = np.std(final_values)
         skewness = stats.skew(final_values)
         kurtosis = stats.kurtosis(final_values)
         prob_loss = np.mean(final_values < self.start_value)
-        return var_95, es_95, max_drawdown, distribution_percentiles, mean, std_dev, skewness, kurtosis, prob_loss
-        
+        # we want to return a dictionary of these values with var_name:valeue
+        return {
+            'var_95': var_95,
+            'es_95': es_95,
+            'max_drawdown': max_drawdown,
+            'mean': mean,
+            'std_dev': std_dev,
+            'skewness': skewness,
+            'kurtosis': kurtosis,
+            'prob_loss': prob_loss
+        }
 
     
     def monteCarlo(self, num_simulations, num_days):
@@ -136,37 +144,3 @@ class StockStats:
                 self.simulations[i] = self.simulate(num_days)
             simulations[i] = self.simulate(num_days)
         return self.getStatistics(simulations)
-    
-
-# # Example usage
-# ticker = 'AAPL'
-# ETF_ticker = 'XLK'
-# shares = 100
-# # Start date will be the dot com bubble burst
-# history_start_date = '2000-03-10'
-# history_end_date = '2002-03-10'
-# stock_stats = StockStats(ticker, ETF_ticker, history_start_date, history_end_date, shares)
-# var_95, es_95, max_drawdown, distribution_percentiles, mean, std_dev, skewness, kurtosis, prob_loss = stock_stats.monteCarlo(1000, 252)
-# print(f"95% Value at Risk: {var_95}")
-# print(f"95% Expected Shortfall: {es_95}")
-# print(f"Maximum Drawdown: {max_drawdown}")
-# print(f"Distribution Percentiles: {distribution_percentiles}")
-# print(f"Mean: {mean}")
-# print(f"Standard Deviation: {std_dev}")
-# print(f"Skewness: {skewness}")
-# print(f"Kurtosis: {kurtosis}")
-# print(f"Probability of Losses Exceeding Start Value: {prob_loss}")
-
-# # WE also want to graph this data
-# num = 100
-# days = 252
-# simulations = np.zeros((num, days))
-# for i in range(num):
-#     simulations[i] = stock_stats.simulate(days)
-# plt.ion()  
-# plt.figure(figsize=(12, 6))
-# plt.plot(simulations.T, color='blue', alpha=0.03)
-# plt.title(f'Monte Carlo Simulations of {ticker} Price')
-# plt.xlabel('Days')
-# plt.ylabel(f'{ticker} Price')
-# plt.savefig("monte_carlo_plot.png")

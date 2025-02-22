@@ -97,6 +97,28 @@ class PortfolioMonteCarlo:
 
         return img_json1
 
+    def generate_no_jump(self):
+        for stock in self.stocks:
+            stock.jumping = False
+        simulations = self.simulate(500, 252)
+        plt.figure(figsize=(14, 7))
+        plt.plot(simulations.T, color='blue', alpha=0.03)
+        plt.title('Monte Carlo Simulations of Portfolio Value (No Black Swan Events)')
+        plt.xlabel('Trading Days')
+        
+         # Save the plot to a BytesIO object
+        buf = BytesIO()
+        plt.savefig(buf, format='png')
+        buf.seek(0)
+
+        # Encode the image as base64
+        img_base64_2 = base64.b64encode(buf.read()).decode('utf-8')
+        buf.close()
+
+        # Create a JSON object with the base64 image
+        img_json2 = {'image': img_base64_2}
+
+        return img_json2
 
     def getStatistics(self, simulations):
         """

@@ -232,48 +232,23 @@ export default function StressTestAnalysis() {
             <CardContent>
               <div className="space-y-2">
                 <div className="flex justify-between">
-                  <DefinitionTooltip
-                    term="Beta"
-                    definition="A measure of a stock's volatility in relation to the overall market."
-                  >
-                    <span className="text-sm font-medium text-muted-foreground">Beta</span>
-                  </DefinitionTooltip>
+                    <span className="text-sm font-medium text-muted-foreground">β</span>
                   <span className="font-bold">{data.beta.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <DefinitionTooltip
-                    term="Lambda Jump"
-                    definition="The frequency of jumps in the stock price, modeling sudden, significant price changes."
-                  >
-                    <span className="text-sm font-medium text-muted-foreground">Lambda Jump</span>
-                  </DefinitionTooltip>
+                    <span className="text-sm font-medium text-muted-foreground">λ<sub>jump</sub></span>
                   <span className="font-bold">{data.lambda_jump.toFixed(2)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <DefinitionTooltip
-                    term="Sig ETF"
-                    definition="The volatility of the stock's returns attributable to ETF-specific factors."
-                  >
-                    <span className="text-sm font-medium text-muted-foreground">Sig ETF</span>
-                  </DefinitionTooltip>
+                    <span className="text-sm font-medium text-muted-foreground">σ<sub>ETF</sub></span>
                   <span className="font-bold">{data.sig_etf.toFixed(4)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <DefinitionTooltip
-                    term="Sig Idio"
-                    definition="The idiosyncratic volatility of the stock, representing company-specific risk."
-                  >
-                    <span className="text-sm font-medium text-muted-foreground">Sig Idio</span>
-                  </DefinitionTooltip>
+                    <span className="text-sm font-medium text-muted-foreground">σ<sub>idiosyncratic</sub></span>
                   <span className="font-bold">{data.sig_idio.toFixed(4)}</span>
                 </div>
                 <div className="flex justify-between">
-                  <DefinitionTooltip
-                    term="Sig S"
-                    definition="The overall volatility of the stock, combining systematic and idiosyncratic risks."
-                  >
-                    <span className="text-sm font-medium text-muted-foreground">Sig S</span>
-                  </DefinitionTooltip>
+                    <span className="text-sm font-medium text-muted-foreground">σ<sub>s</sub></span>
                   <span className="font-bold">{data.sig_s.toFixed(4)}</span>
                 </div>
               </div>

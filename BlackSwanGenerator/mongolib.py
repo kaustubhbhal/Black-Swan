@@ -53,7 +53,6 @@ def getETF(ticker, start):
     inception_date = str(datetime.utcfromtimestamp(inception_date))
     
     if inception_date and inception_date < start:
-        print("HAHAHAHHAHAHAHHAHHAHAHAHHAHAHA", ticker, suggested_etf)
         return suggested_etf
     else:
         return "SPY"
