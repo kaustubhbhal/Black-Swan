@@ -1,34 +1,50 @@
 "use client"
 
-import { signIn } from "next-auth/react"
+import { useSession } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { signIn } from "next-auth/react"
 import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { useEffect } from "react"
 
-export default function LoginPage() {
+export default function HomePage() {
+  const { data: session, status } = useSession()
   const router = useRouter()
 
-  const handleGoogleLogin = async () => {
-    const result = await signIn("google", { callbackUrl: "/onboarding" })
-    if (!result?.error) {
-      localStorage.setItem("isLoggedIn", "true")
-      router.push("/onboarding")
+  useEffect(() => {
+    if (status === "authenticated") {
+      router.push("/dashboard")
     }
+  }, [status, router])
+
+  if (status === "loading") {
+    return <div className="flex justify-center items-center min-h-screen">Loading...</div>
+  }
+
+  if (status === "authenticated") {
+    return null // This will prevent any flash of content before redirect
   }
 
   return (
-    <div className="flex items-center justify-center min-h-[calc(100vh-64px)]">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle>Welcome to BlackSwan</CardTitle>
-          <CardDescription>Sign in to access your portfolio stress test</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Button onClick={handleGoogleLogin} className="w-full">
-            Sign in with Google
-          </Button>
-        </CardContent>
-      </Card>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-white text-black">
+      <div className="max-w-3xl mx-auto text-center px-4">
+        <h1 className="text-6xl font-bold mb-6 animate-fade-in-up">
+          Welcome to <span className="text-gray-600">Black Swan</span>
+        </h1>
+        <p className="text-xl mb-8 animate-fade-in-up animation-delay-200">
+          Prepare for the unexpected. Stress test your portfolio against black swan events and optimize your investment
+          strategy.
+        </p>
+        <Button
+          onClick={() => signIn("google", { callbackUrl: "/dashboard" })}
+          size="lg"
+          className="bg-black text-white hover:bg-gray-800 transition-all duration-200 animate-fade-in-up animation-delay-400"
+        >
+          Get Started
+        </Button>
+      </div>
+      <div className="mt-16 text-sm text-gray-400 animate-fade-in-up animation-delay-600">
+        Powered by advanced AI and financial modeling
+      </div>
     </div>
   )
 }

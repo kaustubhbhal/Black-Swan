@@ -27,7 +27,7 @@ export default function MobileMenu({ children }: MobileMenuProps) {
       <div
         className={`${
           isOpen ? "block" : "hidden"
-        } fixed inset-0 z-50 bg-gray-800 dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 transition-opacity duration-300 ease-in-out`}
+        } fixed inset-0 z-50 bg-black bg-opacity-90 backdrop-blur-sm transition-opacity duration-300 ease-in-out`}
       >
         <div className="flex justify-end p-4">
           <button onClick={() => setIsOpen(false)} className="text-white hover:text-gray-300 focus:outline-none">
