@@ -10,6 +10,8 @@ type Event = {
 
 type EventCardProps = {
   event: Event
+  isSelected: boolean
+  onSelect: (event: Event) => void
 }
 
 const rarityColors = {
@@ -18,27 +20,23 @@ const rarityColors = {
   very_uncommon: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200",
 }
 
-export function EventCard({ event }: EventCardProps) {
-  // Add null checks and default values
-  const name = event?.name || "Unknown Event"
-  const startDate = event?.start_date || "Unknown Date"
-  const description = event?.description || "No description available"
-  const rarity = event?.rarity || "common"
-
-  // Safely access the rarity color
-  const rarityColor = rarityColors[rarity as keyof typeof rarityColors] || rarityColors.common
+export function EventCard({ event, isSelected, onSelect }: EventCardProps) {
+  const rarityColor = rarityColors[event.rarity as keyof typeof rarityColors] || rarityColors.common
 
   return (
-    <Card>
+    <Card
+      className={`cursor-pointer transition-all ${isSelected ? "ring-2 ring-primary" : ""}`}
+      onClick={() => onSelect(event)}
+    >
       <CardHeader>
         <div className="flex justify-between items-center">
-          <CardTitle className="text-lg">{name}</CardTitle>
-          <Badge className={rarityColor}>{rarity.replace(/_/g, " ")}</Badge>
+          <CardTitle className="text-lg">{event.name}</CardTitle>
+          <Badge className={rarityColor}>{event.rarity.replace(/_/g, " ")}</Badge>
         </div>
-        <CardDescription>{startDate}</CardDescription>
+        <CardDescription>{event.start_date}</CardDescription>
       </CardHeader>
       <CardContent>
-        <p className="text-sm">{description}</p>
+        <p className="text-sm">{event.description}</p>
       </CardContent>
     </Card>
   )

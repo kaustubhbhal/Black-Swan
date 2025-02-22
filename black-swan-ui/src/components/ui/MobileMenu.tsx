@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, type ReactNode } from "react"
-import { Menu, X } from 'lucide-react'
+import { Menu, X } from "lucide-react"
 
 interface MobileMenuProps {
   children: ReactNode
@@ -24,11 +24,19 @@ export default function MobileMenu({ children }: MobileMenuProps) {
         )}
       </button>
 
-      {isOpen && (
-        <div className="px-2 pt-2 pb-3 space-y-1 sm:px-3">
-          {children}
+      <div
+        className={`${
+          isOpen ? "block" : "hidden"
+        } fixed inset-0 z-50 bg-gray-800 dark:bg-gray-900 bg-opacity-90 dark:bg-opacity-90 transition-opacity duration-300 ease-in-out`}
+      >
+        <div className="flex justify-end p-4">
+          <button onClick={() => setIsOpen(false)} className="text-white hover:text-gray-300 focus:outline-none">
+            <X className="h-6 w-6" aria-hidden="true" />
+          </button>
         </div>
-      )}
+        <div className="flex flex-col items-center justify-center h-full">{children}</div>
+      </div>
     </div>
   )
 }
+

@@ -93,6 +93,31 @@ def get_clean_swans():
 
     return jsonify(cleaned_data), 200
 
+@app.route('/post_string', methods=['POST'])
+def post_string():
+    global stored_string  # Ensure we modify the global variable
+    
+    data = request.get_json()  # Get the incoming JSON data
+
+    # Ensure the data contains a 'string' key
+    if 'string' not in data:
+        return jsonify({"error": "Missing 'string' in request data"}), 400
+
+    user_string = data['string']
+    
+    # Store the string
+    stored_string = user_string
+
+    return jsonify({"message": "String received", "string": user_string}), 200
+
+@app.route('/get_string', methods=['GET'])
+def get_string():
+    """Retrieve the stored string."""
+    if stored_string is None:
+        return jsonify({"error": "No string found"}), 404
+
+    return jsonify({"selected-card": stored_string}), 200
+
 
 def getWeights(mongo_uri, db_name, collection_name, user_id_str):
     client = MongoClient(mongo_uri)

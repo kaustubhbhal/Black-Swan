@@ -20,7 +20,7 @@ type Event = {
   rarity: string
 }
 
-const FLASK_API_URL = "http://127.0.0.1:5000"
+const FLASK_API_URL = process.env.NEXT_PUBLIC_FLASK_API_URL || "http://127.0.0.1:5000"
 
 export default function StressTestPage() {
   const [starredPortfolio, setStarredPortfolio] = useState<Portfolio | null>(null)
@@ -29,6 +29,7 @@ export default function StressTestPage() {
   const [isFetchingEvents, setIsFetchingEvents] = useState(false)
   const [currentTestPortfolio, setCurrentTestPortfolio] = useState<string | null>(null)
   const [events, setEvents] = useState<Event[]>([])
+  const [selectedEvent, setSelectedEvent] = useState<Event | null>(null)
   const { data: session, status } = useSession()
   const router = useRouter()
 
@@ -120,6 +121,7 @@ export default function StressTestPage() {
       const parsedEvents: Event[] = swansResult.events
 
       setEvents(parsedEvents)
+      setSelectedEvent(null)
 
       if (parsedEvents.length === 0) {
         toast({
@@ -137,7 +139,7 @@ export default function StressTestPage() {
       console.error("Error initiating stress test:", error)
       toast({
         title: "Error",
-        description: `Failed to initiate stress test: ${error instanceof Error ? error.message : "Unknown error"}`,
+        description: `Failed to initiate stress test: ${error instanceof Error ? error.message : 'Unknown error'}`,
         variant: "destructive",
       })
     } finally {
@@ -158,6 +160,7 @@ export default function StressTestPage() {
 
       setCurrentTestPortfolio(null)
       setEvents([])
+      setSelectedEvent(null)
       toast({
         title: "Test Cleared",
         description: "The stress test has been cleared successfully.",
@@ -167,6 +170,46 @@ export default function StressTestPage() {
       toast({
         title: "Error",
         description: "Failed to clear stress test. Please try again.",
+        variant: "destructive",
+      })
+    }
+  }
+
+  const handleEventSelect = (event: Event) => {
+    setSelectedEvent(event)
+  }
+
+  const handleSubmitSelectedEvent = async () => {
+    if (!selectedEvent) {
+      toast({
+        title: "Warning",
+        description: "Please select an event before submitting.",
+        variant: "warning",
+      })
+      return
+    }
+
+    try {
+      const concatenatedString = `${selectedEvent.name} ${selectedEvent.start_date}`
+      const response = await fetch(`${FLASK_API_URL}/post_string`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ string: concatenatedString }),
+      })
+
+      if (!response.ok) {
+        throw new Error("Failed to submit selected event")
+      }
+
+      const result = await response.json()
+      router.push(`/stress-test/result?event=${encodeURIComponent(JSON.stringify(selectedEvent))}`)
+    } catch (error) {
+      console.error("Error submitting selected event:", error)
+      toast({
+        title: "Error",
+        description: "Failed to submit selected event. Please try again.",
         variant: "destructive",
       })
     }
@@ -210,17 +253,27 @@ export default function StressTestPage() {
         <Card>
           <CardHeader>
             <CardTitle>Historical Events for Stress Test</CardTitle>
-            <CardDescription>These events will be used to stress test your portfolio</CardDescription>
+            <CardDescription>Select an event to stress test your portfolio</CardDescription>
           </CardHeader>
           <CardContent>
             {isFetchingEvents ? (
               <p>Fetching historical events...</p>
             ) : events.length > 0 ? (
-              <div className="space-y-4">
-                {events.map((event, index) => (
-                  <EventCard key={index} event={event} />
-                ))}
-              </div>
+              <>
+                <div className="space-y-4 mb-4">
+                  {events.map((event, index) => (
+                    <EventCard
+                      key={index}
+                      event={event}
+                      isSelected={selectedEvent?.name === event.name}
+                      onSelect={handleEventSelect}
+                    />
+                  ))}
+                </div>
+                <Button onClick={handleSubmitSelectedEvent} disabled={!selectedEvent}>
+                  Submit Selected Event
+                </Button>
+              </>
             ) : (
               <p>No events fetched. Please try initiating the stress test again.</p>
             )}
