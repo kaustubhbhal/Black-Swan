@@ -28,6 +28,7 @@ class PortfolioMonteCarlo:
         self.simulations = np.zeros((1000, 252))
         self.portfolio_value = sum([s.start_value for s in self.stocks])
         self.max_y = 2 * self.portfolio_value
+        self.recommendations = {}
 
     def simulate(self, num_simulations, num_days):
         """

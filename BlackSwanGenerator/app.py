@@ -149,6 +149,7 @@ def get_jack():
         }
     actions, words = analyze_portfolio(answer_dict)
     recommendations = {'actions': actions, 'summary': words}
+    JackStatsClass.recommendations = recommendations
     return answer_dict, 200
     
 @app.route('/get_fake_event', methods=['GET'])
@@ -195,7 +196,7 @@ def get_jack_images():
       
 @app.route('/get_actions', methods=['GET'])
 def get_actions():
-    return jsonify(recommendations), 200
+    return jsonify(JackStatsClass.recommendations), 200
 
 
 
