@@ -3,7 +3,7 @@ import pandas as pd
 import yfinance as yf
 from datetime import datetime
 from concurrent.futures import ThreadPoolExecutor
-from stats import StockStats
+from .stats import StockStats
 from scipy import stats
 import base64
 from io import BytesIO
@@ -123,44 +123,10 @@ class PortfolioMonteCarlo:
             'var_95': var_95,
             'es_95': es_95,
             'max_drawdown': max_drawdown,
-            'distribution_percentiles': distribution_percentiles,
+            #'distribution_percentiles': distribution_percentiles,
             'mean': mean,
             'std_dev': std_dev,
             'skewness': skewness,
             'kurtosis': kurtosis,
             'prob_loss': prob_loss
         }
-
-# Example usage with a portfolio of 10 stocks
-stock_dict = {
-    'AAPL': ('XLK', 100),
-    'MSFT': ('XLK', 100),
-    'AMZN': ('XLY', 100),
-    'GOOGL': ('XLK', 100),
-    'META': ('XLK', 100),
-    'TSLA': ('XLY', 100),
-    'NVDA': ('XLK', 100),
-    'JPM': ('XLF', 100),
-    'V': ('XLF', 100),
-    'MA': ('XLF', 100)
-}
-history_start_date = '2000-03-10'
-history_end_date = '2002-03-10'
-portfolio = PortfolioMonteCarlo(stock_dict, history_start_date, history_end_date)
-# Doing the Graphing functions
-portfolio.monteCarlo(1000, 252)
-monte_image = portfolio.generate_monte()
-returns_image = portfolio.generate_returns_annualized()
-print(monte_image)
-print(returns_image)
-
-# now we want to convert the images from base64 to a png and download it
-# we will use the PIL library to do this
-from PIL import Image
-import io
-
-# convert the base64 image to a PIL image
-returns_image_data = base64.b64decode(returns_image['image'])
-# save this as a png
-img = Image.open(io.BytesIO(returns_image_data))
-img.save('returns_image.png', 'PNG')

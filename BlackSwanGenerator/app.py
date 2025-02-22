@@ -117,6 +117,8 @@ def get_jack():
 
     string_data = response_data['selected-card']
     start, end = get_dates(string_data)
+    print("START", start)
+    print("END", end)
 
     fake_event = generate_fake_event(string_data)
     global fake_event_string
@@ -128,6 +130,7 @@ def get_jack():
         return jsonify({"error": "No portfolio ID found"}), 404
     
     portfolio_dict = read_mongo_database(MONGO_URI, DB_NAME, COLLECTION_NAME, portfolio_id, start)
+    print("JACKJACKJACKJACK", portfolio_dict)
 
     global JackStatsClass
     JackStatsClass = PortfolioMonteCarlo(portfolio_dict, start, end)
@@ -144,7 +147,7 @@ def get_jack():
             "lambda_jump": stock.lambda_jump
         }
 
-    return jsonify(answer_dict), 200
+    return answer_dict, 200
     
 @app.route('/get_fake_event', methods=['GET'])
 def get_fake_event():
@@ -189,7 +192,7 @@ def get_jack_images():
 def get_dates(string_data):
     client = OpenAI(api_key=api_key)
 
-    sys_prompt = "You are an expert in historical financial analysis and risk modeling. Given the name of a past black swan event, determine the most relevant start date when its effects began to impact financial markets or economic data. The end date should always be exactly two years after the start date. Format your response strictly as YYYY-MM-DD,YYYY-MM-DD without any explanations or additional text."
+    sys_prompt = "You are an expert in historical financial analysis and risk modeling. Given the name of a past black swan event, determine the most relevant start date when its effects began to impact financial markets or economic data. The end date should always be exactly two years after the start date. **Format your response strictly as YYYY-MM-DD,YYYY-MM-DD without any explanations or additional text.**"
 
     prompt = f"Given the past black swan event '{string_data},' provide a date range in the format YYYY-MM-DD,YYYY-MM-DD. The start date should reflect when the event first impacted financial markets, and the end date should be exactly two years later. Output only the date range with no additional text."
     
@@ -200,7 +203,7 @@ def get_dates(string_data):
             {'role': 'system', 'content': sys_prompt},
             {'role': 'user', 'content': prompt}
         ],
-        temperature = 0.1
+        temperature = 0
     )
 
     dates = response.choices[0].message.content.split(',')

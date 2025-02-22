@@ -5,6 +5,7 @@ from bson import ObjectId
 from collections import defaultdict
 from openai import OpenAI
 import yfinance as yf
+from datetime import datetime
 
 load_dotenv()
 
@@ -49,8 +50,10 @@ def getETF(ticker, start):
 
     etf_data = yf.Ticker(suggested_etf)
     inception_date = etf_data.info.get("fundInceptionDate")
-
+    inception_date = str(datetime.utcfromtimestamp(inception_date))
+    
     if inception_date and inception_date < start:
+        print("HAHAHAHHAHAHAHHAHHAHAHAHHAHAHA", ticker, suggested_etf)
         return suggested_etf
     else:
         return "SPY"

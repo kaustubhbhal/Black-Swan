@@ -16,6 +16,7 @@ interface NavbarProps {
 
 export default function Navbar({ session, status }: NavbarProps) {
   const [isOpen, setIsOpen] = useState(false)
+  const [imageError, setImageError] = useState(false)
   const { theme } = useTheme()
 
   const navLinks = [
@@ -31,16 +32,24 @@ export default function Navbar({ session, status }: NavbarProps) {
       <div className="container mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <Link href="/" className="flex items-center">
-            <div className="relative w-12 h-12 mr-2">
-              <Image
-                src="/logo2.png"
-                alt="BlackSwan Logo"
-                fill
-                className="object-contain"
-                priority
-              />
+            <div className="relative w-8 h-8 mr-2">
+              {!imageError ? (
+                <Image
+                  src="/logo.png"
+                  alt="BlackSwan Logo"
+                  width={32}
+                  height={32}
+                  className="object-contain"
+                  onError={() => setImageError(true)}
+                  priority
+                />
+              ) : (
+                <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center text-gray-800 font-bold text-xs">
+                  BS
+                </div>
+              )}
             </div>
-            <span className="text-2xl font-bold">Black Swan</span>
+            <span className="text-2xl font-bold">BlackSwan</span>
           </Link>
           {status === "authenticated" && (
             <>
