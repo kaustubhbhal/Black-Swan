@@ -64,7 +64,7 @@ def get_portfolio():
 @app.route('/post_swans', methods=['GET'])  # Change to GET
 def post_swans():
     # Call the /get_portfolio route
-    response = requests.get("https://black-swan-53zq.onrender.com/get_portfolio")
+    response = requests.get("black-swan-production.up.railway.app")
     print(response)
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch portfolio"}), 500
@@ -113,7 +113,7 @@ def get_string():
 
 @app.route('/get_jack', methods=['GET'])
 def get_jack():
-    response = requests.get("https://black-swan-53zq.onrender.com/get_string")
+    response = requests.get("black-swan-production.up.railway.app")
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch string"}), 500
 
