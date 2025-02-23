@@ -8,3 +8,4 @@ yfinance
 statsmodels
 matplotlib
 gunicorn
+jsonify

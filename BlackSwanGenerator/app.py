@@ -30,7 +30,7 @@ def home():
     return jsonify({'message': 'Flask API is running!'})
 
 # In-memory storage for portfolio ID (not persistent)
-portfolio_data = {"67b97f811270570db33ece96"}
+portfolio_data = {}
 # In-memory storage for the fake event (not persistent)
 global fake_event_string
 global JackStatsClass
@@ -38,6 +38,7 @@ global JackStatsClass
 @app.route('/add_portfolio', methods=['POST'])
 def add_portfolio():
     data = request.get_json()
+    print(data)
     portfolio_id = data.get("id")
 
     if not portfolio_id:
