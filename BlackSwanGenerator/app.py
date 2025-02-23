@@ -30,7 +30,7 @@ def home():
     return jsonify({'message': 'Flask API is running!'})
 
 # In-memory storage for portfolio ID (not persistent)
-portfolio_data = {}
+portfolio_data = {"67b97f811270570db33ece96"}
 # In-memory storage for the fake event (not persistent)
 global fake_event_string
 global JackStatsClass
@@ -59,7 +59,7 @@ def get_portfolio():
     if "id" not in portfolio_data:
         return jsonify({"error": "No portfolio ID found"}), 404
 
-    return jsonify({"portfolio_id": "67b97f811270570db33ece96"}), 200
+    return jsonify({"portfolio_id": portfolio_data["id"]}), 200
 
 @app.route('/post_swans', methods=['GET'])  # Change to GET
 def post_swans():
@@ -113,7 +113,7 @@ def get_string():
 
 @app.route('/get_jack', methods=['GET'])
 def get_jack():
-    response = requests.get("black-swan-production.up.railway.app/get_string")
+    response = requests.get("black-swan-production.up.railway.app")
     if response.status_code != 200:
         return jsonify({"error": "Failed to fetch string"}), 500
 
